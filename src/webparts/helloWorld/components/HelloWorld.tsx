@@ -15,15 +15,39 @@ export default class HelloWorld extends React.Component < IHelloWorldProps, {} >
         <p className={styles.description}>{escape(this.props.description)}</p>
         <p className={styles.description}>{escape(this.props.test)}</p>       
         <a href='https://aka.ms/spfx' className={styles.button}>
-<<<<<<< HEAD
           <span className={styles.label}>更多</span>
-=======
-          <span className={styles.label}>Learn </span>
->>>>>>> 1893427900dcb28109b43fe549795d1c27a26565
         </a>
+        <div className={ styles.row }>
+                <button className={styles.button} id="showListButton"><span>显示list</span></button>
+              </div>
+              <div className={ styles.row }>
+                <button className={styles.button} id="showItemButton"><span>显示item</span></button>
+              </div>
+              <div className={ styles.row }>
+                <span className={styles.title}>输入标题:</span>
+                <input type="text" id="titleTxtCreate"/>
+                <button className={styles.button} id="createButton"><span>新建item</span></button>
+              </div>
+              <div className={ styles.row }>
+                <span className={styles.title}>输入ID:</span>
+                <input type="text" id="idTxtUpdate"/>
+                <button className={styles.button} id="updateButton"><span>更新item</span></button>
+              </div> 
+              <div className={ styles.row }>
+                <span className={styles.title}>输入ID:</span>
+                <input type="text" id="idTxtDelete"/>
+                <button className={styles.button} id="deleteButton"><span>删除item</span></button>
+              </div>
+              <div className={ styles.row }>
+                <span className={styles.title}>当前状态:</span>
+                <span id="message" className={styles.title}></span>
+              </div>
+              <p id="lists"></p>
+              <p id="items"></p>
       </div>
     </div>
-  </div>
+  <div id="spListContainer" />
+    </div>
       </div >
     );
   }
