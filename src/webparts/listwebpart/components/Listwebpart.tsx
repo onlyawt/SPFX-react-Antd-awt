@@ -2,24 +2,16 @@ import * as React from 'react';
 import styles from './Listwebpart.module.scss';
 import { IListwebpartProps } from './IListwebpartProps';
 import { escape } from '@microsoft/sp-lodash-subset';
+import 'antd/dist/antd.css';
+import Button from 'antd/lib/button';
 
 export default class Listwebpart extends React.Component < IListwebpartProps, {} > {
   public render(): React.ReactElement<IListwebpartProps> {
     return(
-      <div className = { styles.listwebpart } >
-  <div className={styles.container}>
-    <div className={styles.row}>
-      <div className={styles.column}>
-        <span className={styles.title}>Welcome to SharePoint!</span>
-        <p className={styles.subTitle}>Customize SharePoint experiences using Web Parts.</p>
-        <p className={styles.description}>{escape(this.props.description)}</p>
-        <a href='https://aka.ms/spfx' className={styles.button}>
-          <span className={styles.label}>Learn more</span>
-        </a>
-      </div>
+      <div>
+    <button type='primary'>Primary</button>
+    <Button type='primary'>Primary</Button>
     </div>
-  </div>
-      </div >
     );
   }
 }
