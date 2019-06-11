@@ -9,10 +9,19 @@
           "manifest": "./src/webparts/helloWorld/HelloWorldWebPart.manifest.json"
         }
       ]
+    },
+    "listwebpart-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/listwebpart/ListwebpartWebPart.js",
+          "manifest": "./src/webparts/listwebpart/ListwebpartWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {},
   "localizedResources": {
-    "HelloWorldWebPartStrings": "lib/webparts/helloWorld/loc/{locale}.js"
+    "HelloWorldWebPartStrings": "lib/webparts/helloWorld/loc/{locale}.js",
+    "ListwebpartWebPartStrings": "lib/webparts/listwebpart/loc/{locale}.js"
   }
 }

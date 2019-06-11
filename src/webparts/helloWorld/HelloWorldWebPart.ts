@@ -176,7 +176,7 @@ export default class HelloWorldWebPart extends BaseClientSideWebPart<IHelloWorld
     );
 
     ReactDom.render(element, this.domElement);
-    this._renderListAsync();
+    //this._renderListAsync();
     this.bindButtonEvent();
     this.showItems();
   }
