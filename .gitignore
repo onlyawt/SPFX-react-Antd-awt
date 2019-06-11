@@ -30,3 +30,7 @@ obj
 
 # Styles Generated Code
 *.scss.ts
+
+# Visual Studio Code files 
+.vscode
+package-lock.json
