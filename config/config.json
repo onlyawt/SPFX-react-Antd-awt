@@ -17,11 +17,20 @@
           "manifest": "./src/webparts/listwebpart/ListwebpartWebPart.manifest.json"
         }
       ]
+    },
+    "business-application-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/businessApplication/BusinessApplicationWebPart.js",
+          "manifest": "./src/webparts/businessApplication/BusinessApplicationWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {},
   "localizedResources": {
     "HelloWorldWebPartStrings": "lib/webparts/helloWorld/loc/{locale}.js",
-    "ListwebpartWebPartStrings": "lib/webparts/listwebpart/loc/{locale}.js"
+    "ListwebpartWebPartStrings": "lib/webparts/listwebpart/loc/{locale}.js",
+    "BusinessApplicationWebPartStrings": "lib/webparts/businessApplication/loc/{locale}.js"
   }
 }
