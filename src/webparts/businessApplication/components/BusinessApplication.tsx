@@ -4,7 +4,6 @@ import { IBusinessApplicationProps } from './IBusinessApplicationProps';
 import { escape } from '@microsoft/sp-lodash-subset';
 import 'antd/dist/antd.css';
 import { Select, Tabs, Card, InputNumber, LocaleProvider, DatePicker, Button, Modal, Input, Badge, Form, Upload, message, Icon } from 'antd';
-
 import { sp, toAbsoluteUrl } from '@pnp/sp';
 
 
@@ -38,16 +37,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     };
 
 
-    var componentConfig = {
-      iconFiletypes: ['.txt', '.png', '.gif'],
-      showFiletypeIcon: true,
-      postUrl: 'no url'
-  };
-  const djsConfig = {
-    maxFilesize: 2,
-    maxFiles: 10,
-    acceptedFiles: 'image/*'
-  }
     return (
       <div className={styles.businessApplication} >
         <div className={styles.container}>
@@ -94,9 +83,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                   <Button>提交</Button>
                   <span>企业微信通知：</span>
                 </div>
-                {/* <DropzoneComponent  djsConfig={djsConfig} config={componentConfig}>
-                <Button>点击上传</Button>
-                </DropzoneComponent> */}
               </div>
             </TabPane>
             <TabPane tab='待审阅' key='2'>
