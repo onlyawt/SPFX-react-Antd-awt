@@ -20,36 +20,56 @@ export interface IAlertwebpartWebPartProps {
 export default class AlertwebpartWebPart extends BaseClientSideWebPart<IAlertwebpartWebPartProps> {
 
   public render(): void {
-    const element: React.ReactElement<IAlertwebpartProps > = React.createElement(
+    const element: React.ReactElement<IAlertwebpartProps> = React.createElement(
       Alertwebpart,
       {
         description: this.properties.description
       }
     );
-    
+
     ReactDom.render(element, this.domElement);
     this.showItems();
     this.showxinxi();
     this.bindButtonEvent();
+    this.ButtonEvent();
+
+
   }
   private bindButtonEvent() {
     const webpart: AlertwebpartWebPart = this;
     this.domElement.querySelector('#select1').addEventListener('change', () => { webpart.showxinxi(); });
-  }  
+  }
+
+
+  private ButtonEvent() {
+    const webpart: AlertwebpartWebPart = this;
+    this.domElement.querySelector('#buttonck').addEventListener('click', () => { webpart.clickEvent(); });
+  }
+  private clickEvent() {
+    const webpart: AlertwebpartWebPart = this;
+    this.domElement.querySelector('Modal').addEventListener('onload', () => { webpart.showalert(); });
+  }
+  private showalert(): void {
+    const itemsDom2: Element = this.domElement.querySelector('#select2');
+    sp.web.lists.getByTitle('新项目测试数据').items.get().then(items => {
+      itemsDom2.innerHTML += `${items.map(i => `<Option value='${i.Title}'>${i.Title}</Option>`).join('')}`;
+    });
+  }
+  
   private showItems(): void {
     const itemsDom: Element = this.domElement.querySelector('#select1');
-      sp.web.lists.getByTitle('新项目测试数据').items.get().then(items => {
-        itemsDom.innerHTML+= `${items.map(i => `<Option value="${i.id}">${i.Title}</Option>`).join('')}`;
-      });
+    sp.web.lists.getByTitle('新项目测试数据').items.get().then(items => {
+      itemsDom.innerHTML += `${items.map(i => `<Option value='${i.Title}'>${i.Title}</Option>`).join('')}`;
+    });
   }
   private showxinxi(): void {
-    const itemsDom: Element = this.domElement.querySelector('#select1');
-    //const obj: string=itemsDom.nodeValue;
+    const itemsDom: HTMLInputElement = <HTMLInputElement>this.domElement.querySelector('#select1');
+     // const obj: string=itemsDom.nodeValue;
     const createshowxinxi: Element = this.domElement.querySelector('#showxinxi');
-    const newshowxinxi: string = itemsDom.textContent;
-    console.log(newshowxinxi+'1');
-    createshowxinxi.innerHTML=newshowxinxi ;
-      
+    const newshowxinxi: string =itemsDom.value;
+    console.log(newshowxinxi + '1');
+    createshowxinxi.innerHTML = newshowxinxi;
+
   }
   protected onDispose(): void {
     ReactDom.unmountComponentAtNode(this.domElement);
