@@ -6,7 +6,9 @@ import {
   IPropertyPaneConfiguration,
   PropertyPaneTextField
 } from '@microsoft/sp-webpart-base';
-
+import {
+  sp
+} from '@pnp/sp';
 import * as strings from 'AlertwebpartWebPartStrings';
 import Alertwebpart from './components/Alertwebpart';
 import { IAlertwebpartProps } from './components/IAlertwebpartProps';
@@ -24,10 +26,31 @@ export default class AlertwebpartWebPart extends BaseClientSideWebPart<IAlertweb
         description: this.properties.description
       }
     );
-
+    
     ReactDom.render(element, this.domElement);
+    this.showItems();
+    this.showxinxi();
+    this.bindButtonEvent();
   }
-
+  private bindButtonEvent() {
+    const webpart: AlertwebpartWebPart = this;
+    this.domElement.querySelector('#select1').addEventListener('change', () => { webpart.showxinxi(); });
+  }  
+  private showItems(): void {
+    const itemsDom: Element = this.domElement.querySelector('#select1');
+      sp.web.lists.getByTitle('新项目测试数据').items.get().then(items => {
+        itemsDom.innerHTML+= `${items.map(i => `<Option value="${i.id}">${i.Title}</Option>`).join('')}`;
+      });
+  }
+  private showxinxi(): void {
+    const itemsDom: Element = this.domElement.querySelector('#select1');
+    //const obj: string=itemsDom.nodeValue;
+    const createshowxinxi: Element = this.domElement.querySelector('#showxinxi');
+    const newshowxinxi: string = itemsDom.textContent;
+    console.log(newshowxinxi+'1');
+    createshowxinxi.innerHTML=newshowxinxi ;
+      
+  }
   protected onDispose(): void {
     ReactDom.unmountComponentAtNode(this.domElement);
   }

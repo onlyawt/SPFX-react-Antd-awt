@@ -18,6 +18,14 @@
         }
       ]
     },
+    "business-application-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/businessApplication/BusinessApplicationWebPart.js",
+          "manifest": "./src/webparts/businessApplication/BusinessApplicationWebPart.manifest.json"
+        }
+      ]
+    },
     "alertwebpart-web-part": {
       "components": [
         {
@@ -31,6 +39,7 @@
   "localizedResources": {
     "HelloWorldWebPartStrings": "lib/webparts/helloWorld/loc/{locale}.js",
     "ListwebpartWebPartStrings": "lib/webparts/listwebpart/loc/{locale}.js",
+    "BusinessApplicationWebPartStrings": "lib/webparts/businessApplication/loc/{locale}.js",
     "AlertwebpartWebPartStrings": "lib/webparts/alertwebpart/loc/{locale}.js"
   }
 }
