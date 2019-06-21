@@ -4,7 +4,7 @@ import { IBusinessApplicationProps } from './IBusinessApplicationProps';
 import { escape } from '@microsoft/sp-lodash-subset';
 import 'antd/dist/antd.css';
 import { Select, Tabs, Card, InputNumber, LocaleProvider, DatePicker, Button, Modal, Input, Badge, Form, Upload, message, Icon } from 'antd';
-import {DropzoneComponent} from 'react-dropzone-component';
+
 import { sp, toAbsoluteUrl } from '@pnp/sp';
 
 
