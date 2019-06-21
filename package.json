@@ -25,7 +25,8 @@
     "@types/webpack-env": "1.13.1",
     "antd": "^3.8.0",
     "react": "15.6.2",
-    "react-dom": "15.6.2"
+    "react-dom": "15.6.2",
+    "react-dropzone-component": "^3.2.0"
   },
   "resolutions": {
     "@types/react": "15.6.6"
