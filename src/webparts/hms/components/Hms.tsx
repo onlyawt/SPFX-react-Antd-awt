@@ -8,19 +8,55 @@ import { escape } from '@microsoft/sp-lodash-subset';
 
 import { sp } from "@pnp/sp";
 
-import { Table, Divider, Button } from 'antd';
+import { Table, Divider, Button,Modal,Icon } from 'antd';
 
 import 'antd/dist/antd.css';
 
 import * as moment from 'moment';
+import { DisplayMode } from '@microsoft/sp-core-library';
 
 export default class HMS extends React.Component<IHmsProps, {}> {
 
+  public showModal = () => {
+    this.setState({
+      visible: true,
+    });
+  };
+
+  public  handleOk = (e) => {
+    this.setState({
+      ModalText:'页面几秒后关闭',
+      loading: true });
+    /* let demo=this.refs.getFormVlaue;
+    demo.validateFields((err,values)=>{
+      if(!err){
+        console.log(values);
+      }
+    }) */
+    setTimeout(() => {
+      this.setState({ loading: false, visible: false });
+    }, 3000);
+  };
+
+  public  handleCancel = () => {
+    this.setState({ visible: false });
+  };
+  public guiDang = () => {
+    this.setState({ visible: false });
+  };
+  public chuanYue = () => {
+    this.setState({ visible: false });
+  };
+
   state = {
+    loading: false,
+    visible: false,
+    data: null,
+    // selectedOption: null,
+    // selectValue:null
+    ModalText: 'lalalala',
 
-    data: null
-
-  }
+  };
 
   columns = [
 
@@ -32,7 +68,7 @@ export default class HMS extends React.Component<IHmsProps, {}> {
 
       key: 'ApproveID',
 
-      render: text => <a href="javascript:;">{text}</a>,//TODO:标题字数限制
+      render: text => <a onClick={this.showModal} id='buttonck'>{text}</a>,//TODO:标题字数限制
 
     },
 
@@ -160,9 +196,9 @@ export default class HMS extends React.Component<IHmsProps, {}> {
 
   public handle
 
-  public render(): React.ReactElement<IHMSProps> {
+  public render(): React.ReactElement<IHmsProps> {
 
-    const { data } = this.state;
+    const { visible, loading,data} = this.state;
 
     console.log(data);
 
@@ -170,13 +206,36 @@ export default class HMS extends React.Component<IHmsProps, {}> {
 
       <div>
 
-        //TAB页 切换时重新赋值
+        {/* TAB页 切换时重新赋值
 
-        //Tab页最右边添加“新建业务申请”的链接
+        Tab页最右边添加“新建业务申请”的链接
 
-        //列表链接点击后弹出业务申请展示页面（新打开页）
+        列表链接点击后弹出业务申请展示页面（新打开页） */}
 
         <Table columns={this.columns} rowKey='ApproveID' dataSource={data} size='small' />
+
+        <Modal
+          width='800'
+          visible={visible}
+          title='带审阅'
+          centered
+          onCancel={this.handleCancel}
+          footer={null}
+        >
+            <Button key='chuanyue' onClick={this.chuanYue}>
+              传阅
+            </Button>
+
+            <Button key='submit' type='primary' loading={loading} onClick={this.handleOk}>
+            处理
+            </Button>
+            <Button key='back' type="danger" onClick={this.handleCancel}>
+            退回
+            </Button>
+            <Button key='guidang' onClick={this.guiDang}>
+            归档
+            </Button>
+        </Modal>
 
       </div>
 
