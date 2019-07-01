@@ -26,6 +26,7 @@
         }
       ]
     }
+ 
   },
   "externals": {},
   "localizedResources": {
@@ -33,5 +34,6 @@
     "AlertwebpartWebPartStrings": "lib/webparts/alertwebpart/loc/{locale}.js",
     "HmsWebPartStrings": "lib/webparts/hms/loc/{locale}.js",
     "ControlStrings": "node_modules/@pnp/spfx-controls-react/lib/loc/{locale}.js"
+
   }
 }

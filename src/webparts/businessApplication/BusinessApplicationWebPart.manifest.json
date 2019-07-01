@@ -16,11 +16,12 @@
   "preconfiguredEntries": [{
     "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
     "group": { "default": "Other" },
-    "title": { "default": "Business-application" },
-    "description": { "default": "Business-application description" },
+    "title": { "default": "业务申请" },
+    "description": { "default": "业务申请web Part" },
     "officeFabricIconFontName": "Page",
     "properties": {
-      "description": "Business-application"
+      "ApprovealListName": "业务审批",
+      "ApprovealRecordListName":"业务审批审批意见记录"
     }
   }]
 }
