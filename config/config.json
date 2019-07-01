@@ -17,11 +17,20 @@
           "manifest": "./src/webparts/alertwebpart/AlertwebpartWebPart.manifest.json"
         }
       ]
+    },
+    "hms-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/hms/HmsWebPart.js",
+          "manifest": "./src/webparts/hms/HmsWebPart.manifest.json"
+        }
+      ]
     }
   },
   "externals": {},
   "localizedResources": {
     "BusinessApplicationWebPartStrings": "lib/webparts/businessApplication/loc/{locale}.js",
-    "AlertwebpartWebPartStrings": "lib/webparts/alertwebpart/loc/{locale}.js"
+    "AlertwebpartWebPartStrings": "lib/webparts/alertwebpart/loc/{locale}.js",
+    "HmsWebPartStrings": "lib/webparts/hms/loc/{locale}.js"
   }
 }
