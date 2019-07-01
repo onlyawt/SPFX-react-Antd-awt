@@ -6,7 +6,7 @@ import {
   IPropertyPaneConfiguration,
   PropertyPaneTextField
 } from '@microsoft/sp-webpart-base';
-
+import { sp } from '@pnp/sp';
 import * as strings from 'BusinessApplicationWebPartStrings';
 import BusinessApplication from './components/BusinessApplication';
 import { IBusinessApplicationProps } from './components/IBusinessApplicationProps';
@@ -18,8 +18,17 @@ export interface IBusinessApplicationWebPartProps {
 
 export default class BusinessApplicationWebPart extends BaseClientSideWebPart<IBusinessApplicationWebPartProps> {
 
+  public onInit(): Promise<void> {
+
+    return super.onInit().then(_ => {
+      sp.setup({
+        spfxContext: this.context
+      });
+    });
+  }
+
   public render(): void {
-    const element: React.ReactElement<IBusinessApplicationProps > = React.createElement(
+    const element: React.ReactElement<IBusinessApplicationProps> = React.createElement(
       BusinessApplication,
       {
         ApprovealListName:this.properties.ApprovealListName,
@@ -37,7 +46,7 @@ export default class BusinessApplicationWebPart extends BaseClientSideWebPart<IB
   protected get dataVersion(): Version {
     return Version.parse('1.0');
   }
-
+  //根据ID展示列表具体属性
   protected getPropertyPaneConfiguration(): IPropertyPaneConfiguration {
     return {
       pages: [
