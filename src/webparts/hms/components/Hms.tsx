@@ -160,7 +160,7 @@ export default class HMS extends React.Component<IHmsProps, {}> {
 
   public handle
 
-  public render(): React.ReactElement<IHMSProps> {
+  public render(): React.ReactElement<IHmsProps> {
 
     const { data } = this.state;
 
