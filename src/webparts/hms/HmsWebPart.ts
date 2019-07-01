@@ -10,12 +10,29 @@ import {
 import * as strings from 'HmsWebPartStrings';
 import Hms from './components/Hms';
 import { IHmsProps } from './components/IHmsProps';
+import { sp } from "@pnp/sp";
+
 
 export interface IHmsWebPartProps {
   description: string;
 }
 
 export default class HmsWebPart extends BaseClientSideWebPart<IHmsWebPartProps> {
+
+
+  public onInit(): Promise<void> {
+
+    return super.onInit().then(_ => {
+    
+    sp.setup({
+    
+    spfxContext: this.context
+    
+    });
+    
+    });
+    
+    }
 
   public render(): void {
     const element: React.ReactElement<IHmsProps > = React.createElement(
