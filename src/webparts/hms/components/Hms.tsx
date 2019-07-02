@@ -19,6 +19,7 @@ export default class HMS extends React.Component<IHmsProps, {}> {
 
   public showModal = () => {
     this.setState({
+      
       visible: true,
     });
   };
