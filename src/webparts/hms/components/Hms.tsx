@@ -1,8 +1,8 @@
 import * as React from 'react';
 
-import styles from './HMS.module.scss';
+import styles from './Hms.module.scss';
 
-import { IHmsProps } from './IHMSProps';
+import { IHmsProps } from './IHmsProps';
 
 import { escape } from '@microsoft/sp-lodash-subset';
 

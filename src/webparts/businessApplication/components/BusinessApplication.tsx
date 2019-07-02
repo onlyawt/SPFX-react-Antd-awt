@@ -12,7 +12,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
   state = {
     data: null,
-  };
     visible: false
   }
   showDrawer = () => {
@@ -49,12 +48,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       dataIndex: 'createTime',
       key: 'createTime',
       render: text => <a>{moment(text).format('YYYY-MM-DD  hh:mm')}</a> // TODO：日期格式化
-    }
-  ];
-  columns2 = [
-    {
-      title:'biaoti',
-      dataIndex:'Title'
     }
   ];
   constructor(props) {
