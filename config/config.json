@@ -34,13 +34,19 @@
         }
       ]
     }
+ 
   },
   "externals": {},
   "localizedResources": {
     "BusinessApplicationWebPartStrings": "lib/webparts/businessApplication/loc/{locale}.js",
     "AlertwebpartWebPartStrings": "lib/webparts/alertwebpart/loc/{locale}.js",
     "HmsWebPartStrings": "lib/webparts/hms/loc/{locale}.js",
+<<<<<<< HEAD
     "ControlStrings": "node_modules/@pnp/spfx-controls-react/lib/loc/{locale}.js",
     "ShowPageWebPartStrings": "lib/webparts/showPage/loc/{locale}.js"
+=======
+    "ControlStrings": "node_modules/@pnp/spfx-controls-react/lib/loc/{locale}.js"
+
+>>>>>>> 04838b2297f97a99161ead015a8ad8dda6a8aa74
   }
 }

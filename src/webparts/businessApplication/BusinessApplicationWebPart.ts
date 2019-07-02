@@ -12,7 +12,8 @@ import BusinessApplication from './components/BusinessApplication';
 import { IBusinessApplicationProps } from './components/IBusinessApplicationProps';
 
 export interface IBusinessApplicationWebPartProps {
-  description: string;
+  ApprovealListName: string;
+  ApprovealRecordListName:string;
 }
 
 export default class BusinessApplicationWebPart extends BaseClientSideWebPart<IBusinessApplicationWebPartProps> {
@@ -30,7 +31,8 @@ export default class BusinessApplicationWebPart extends BaseClientSideWebPart<IB
     const element: React.ReactElement<IBusinessApplicationProps> = React.createElement(
       BusinessApplication,
       {
-        description: this.properties.description
+        ApprovealListName:this.properties.ApprovealListName,
+        ApprovealRecordListName:this.properties.ApprovealRecordListName
       }
     );
 
@@ -56,8 +58,11 @@ export default class BusinessApplicationWebPart extends BaseClientSideWebPart<IB
             {
               groupName: strings.BasicGroupName,
               groupFields: [
-                PropertyPaneTextField('description', {
-                  label: strings.DescriptionFieldLabel
+                PropertyPaneTextField('ApprovealListName', {
+                  label: "审批列表库名称"
+                }),
+                PropertyPaneTextField('ApprovealRecordListName', {
+                  label: "审批意见列表库名称"
                 })
               ]
             }

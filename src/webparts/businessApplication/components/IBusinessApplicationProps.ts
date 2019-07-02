@@ -1,3 +1,4 @@
 export interface IBusinessApplicationProps {
-  description: string;
+  ApprovealListName: string;
+  ApprovealRecordListName:string;
 }

@@ -22,6 +22,7 @@ export default class HMS extends React.Component<IHmsProps, {}> {
     
     this.getPage(itemId);
     this.setState({
+      
       visible: true,
     });
   };
