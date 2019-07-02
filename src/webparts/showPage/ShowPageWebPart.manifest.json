@@ -1,7 +1,7 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
-  "id": "49174a79-79b9-4d5f-be8f-1d2bd237613a",
-  "alias": "BusinessApplicationWebPart",
+  "id": "d87785a1-9487-4568-adbb-2fb2fc52524e",
+  "alias": "ShowPageWebPart",
   "componentType": "WebPart",
 
   // The "*" signifies that the version should be taken from the package.json
@@ -16,12 +16,11 @@
   "preconfiguredEntries": [{
     "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
     "group": { "default": "Other" },
-    "title": { "default": "业务申请" },
-    "description": { "default": "业务申请web Part" },
+    "title": { "default": "showPage" },
+    "description": { "default": "showPage description" },
     "officeFabricIconFontName": "Page",
     "properties": {
-      "ApprovealListName": "业务审批",
-      "ApprovealRecordListName":"业务审批审批意见记录"
+      "description": "showPage"
     }
   }]
 }
