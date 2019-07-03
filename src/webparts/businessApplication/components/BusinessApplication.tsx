@@ -256,6 +256,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
        <Drawer
           title="提交业务申请"
           width={580}
+          style={{marginBottom:0}}
           onClose={this.onClose}
           visible={this.state.visible}
         >
@@ -270,7 +271,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                 <Form.Item label="类型">
               
                     <Select placeholder="请选择类型"
-                 
                     >
                     {this.state.typeList}
                     </Select>
@@ -295,20 +295,35 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               </Row>
               <Row gutter={8}>
                 <Col span={24}>
-                <Form.Item label="附件">
-                <Dragger {...this.props}>
-    <p className="ant-upload-drag-icon">
-      <Icon type="inbox" />
-    </p>
-    <p className="ant-upload-text">点击或拖拽至此处</p>
-    <p className="ant-upload-hint">
-      Support for a single or bulk upload. Strictly prohibit from uploading company data or other
-      band files
-    </p>
-  </Dragger>
-  </Form.Item>
+                 <Form.Item label="附件">
+                  <Dragger {...this.props}>
+                  {/*  <p className="ant-upload-drag-icon">
+                    图片显示样式效果
+                   </p> */}
+                   <p className="ant-upload-text"><Icon type="inbox" />点击或拖拽至此处</p>
+                   <p className="ant-upload-hint">
+                    支持单个或批量上传。严禁上传公司保密数据
+                   </p>
+                   </Dragger>
+                  </Form.Item>
                 </Col>
               </Row>
+              <Row gutter={8}>
+               <Col span={24}>
+                <Form.Item label="审阅人"  >
+                <Input />
+                </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={8}>
+               <Col span={24}>
+                <Form.Item label="传阅人"  >
+                <Input />
+                </Form.Item>
+                </Col>
+              </Row>
+
+
           </Form>
           <div
             style={{
@@ -317,9 +332,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               bottom: 0,
               width: '100%',
               borderTop: '1px solid #e9e9e9',
-              padding: '10px 16px',
+              padding: '5px 16px',
               background: '#fff',
               textAlign: 'right',
+               marginBottom:0,
             }}
           >
             <Button onClick={this.onClose} style={{ marginRight: 8 }}>
