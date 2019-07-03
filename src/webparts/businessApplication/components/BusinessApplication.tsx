@@ -7,8 +7,7 @@ import { sp, Items } from '@pnp/sp';
 import * as moment from 'moment';
 import {ApproveListItem} from './ApproveListItem';
 import {IBusinessApplicationState} from './IBusinessApplicationState';
-const { Option } = Select;
-const { Dragger } = Upload;
+
 export default class BusinessApplication extends React.Component<IBusinessApplicationProps, {}> {
 
   state = {
@@ -16,19 +15,38 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     data: null,
     visible: false,//添加抽屉状态
     visible1: false,
-    dataList:null,
+    Title:null,
     typeList:null //分类list
   }
 
+  columns  = [
+    {
+      title: '标题',
+      dataIndex: 'Title',
+      key: 'Title',
+      render: (text,row)=> <a onClick={this.showModal.bind(this,row.ApproveID)} id='buttonck'>{text}</a>,
+    },
 
-  onClose = () => {
+    {
+      title: '申请人',
+      dataIndex: 'createUserId',
+      key: 'createUserId'
+    },
+
+    {
+      title: '申请时间',
+      dataIndex: 'createTime',
+      key: 'createTime',
+      render: text => <span>{moment(text).format('YYYY-MM-DD  hh:mm')}</span> // TODO：日期格式化
+    }
+  ];
+
+  private onClose = () => {
     this.setState({
       visible: false,
     });
   };
     
-  
-
   private showModal= (itemId) => {
     
     this.getPage(itemId);
@@ -63,37 +81,13 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     this.setState({ visible1: false });
   };
 
-
-  columns  = [
-    {
-      title: '标题',
-      dataIndex: 'Title',
-      key: 'Title',
-      render: (text,row)=> <a onClick={this.showModal.bind(this,row.ApproveID)} id='buttonck'>{text}</a>,
-    },
-
-    {
-      title: '申请人',
-      dataIndex: 'createUserId',
-      key: 'createUserId'
-    },
-
-    {
-      title: '申请时间',
-      dataIndex: 'createTime',
-      key: 'createTime',
-      render: text => <span>{moment(text).format('YYYY-MM-DD  hh:mm')}</span> // TODO：日期格式化
-    }
-  ];
-
-
   constructor(props) {
     super(props);
     this.getPageList();
   }
   
 //添加Item
-  private createItem()  {   
+  public createItem()  {   
     this.setState({
       visible: true
     });
@@ -101,13 +95,13 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   }  
 
   //获取当前登录用户部门
-  private getUserDeptName()
+  public getUserDeptName()
   {
 
   }
  
   //初始化分类
-  private getType()
+  public getType()
   {
     
     const options = [];
@@ -115,7 +109,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       if(Items.length>0)
       {
          for (let index = 0; index < Items.length; index++) {
-          options.push( <Option value={Items[index]['Title']}>{Items[index]['Title']}</Option>); 
+          options.push( <Select.Option value={Items[index]['Title']}>{Items[index]['Title']}</Select.Option>); 
          }
          this.setState({
           typeList:options,
@@ -124,7 +118,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     });
   }
 
-  private getPageList() {
+  public getPageList() {
     sp.web.currentUser.get().then(current_user => {
       sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime', true).getAll().then(items => {
         if (items.length > 0) {
@@ -137,24 +131,21 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     );
   }
 
-  private getPage(itemId) {
-
-
-    sp.web.lists.getByTitle('审批').items.filter('ApproveID eq ' + itemId).getAll().then(items => {
-
-      
-      if (items.length > 0) {
-       
+  //通过项目id查找单条数据
+  public getPage(itemId) {
+    var  options = [];
+    sp.web.lists.getByTitle('审批').items.filter('ApproveID eq ' + itemId).getAll().then(items => {     
+      console.log(items.length);
+      console.log(items[0]['ID']);
+      if (items.length > 0) {       
+          // options.push(Items[0]['ID']); 
+        options[0]=items[0]['Title'];
+        console.log(options);
         this.setState({
-
-          dataList: items
-
+          Title: options
         })
-
       }
-
     });  
-
 }
   /**
   * 切换TAB页时候的数据重新渲染
@@ -191,9 +182,9 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
 
   public render(): React.ReactElement<IBusinessApplicationProps> {
-    const { visible1,  visible, loading,data,dataList } = this.state;
+    const { visible1,  visible, loading,data,Title } = this.state;
     //this.getPage('65');
-   // console.log(data["0"].ApproveID);
+    console.log(Title);
     return (
     
       <div  >
@@ -206,19 +197,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         <div>
           <Table columns={this.columns} rowKey='ApproveID' dataSource={data} size='small' />
         </div>
-        {/* <Tabs defaultActiveKey='1' tabBarExtraContent={operations}>
-          <TabPane tab='待办' key='1'>
-            <Table columns={this.columns} rowKey='ApproveID' dataSource={data} size='small' />
-          </TabPane>
-          <TabPane tab='已办' key='2'>
-          </TabPane>
-          <TabPane tab='我的' key='4'></TabPane>
-          <TabPane tab='查询' key='6'></TabPane>
-        </Tabs> */}
-       {/* 创建DrawerForm */}
 
-
-        {/* yufan */}
         <Modal
           width={800}
           visible={visible1}
@@ -227,14 +206,14 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           onCancel={this.handleCancel}
           footer={null}
         >            
-             <Table columns={this.columns} rowKey='ApproveID' dataSource={dataList} size='small' />  
+             {/* <Table columns={this.columns} rowKey='ApproveID' dataSource={dataList} size='small' />   */}
             
             {/* <div>{dataList.ApproveID}</div> */}
             <table>
               <tbody id='items'>
                 <tr>
                   <td>标题:</td>
-                  <td></td>
+                  <td>{Title}</td>
                 </tr>
               </tbody>
             </table>
@@ -297,7 +276,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               <Row gutter={8}>
                 <Col span={24}>
                 <Form.Item label="附件">
-                <Dragger {...this.props}>
+                <Upload.Dragger {...this.props}>
     <p className="ant-upload-drag-icon">
       <Icon type="inbox" />
     </p>
@@ -306,7 +285,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       Support for a single or bulk upload. Strictly prohibit from uploading company data or other
       band files
     </p>
-  </Dragger>
+  </Upload.Dragger>
   </Form.Item>
                 </Col>
               </Row>
