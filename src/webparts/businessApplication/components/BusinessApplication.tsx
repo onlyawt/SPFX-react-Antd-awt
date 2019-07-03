@@ -49,9 +49,9 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   }
   
 //添加Item
-  private createItem() {   
+  private createItem()  {   
     this.setState({
-      visible: true,
+      visible: true
     });
     
   }  
@@ -183,7 +183,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             }}
           >
             <Button onClick={this.onClose} style={{ marginRight: 8 }}>
-              Cancel
+              取消
             </Button>
             <Button onClick={this.onClose} type="primary">
               Submit
