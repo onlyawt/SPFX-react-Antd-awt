@@ -2,7 +2,7 @@ import * as React from 'react';
 import styles from './BusinessApplication.module.scss';
 import { IBusinessApplicationProps } from './IBusinessApplicationProps';
 import 'antd/dist/antd.css';
-import { Tabs, Button, Table, Menu,Drawer, Form, Col, Row, Input, Select, DatePicker, Icon} from 'antd';
+import { Tabs, Button, Table, Menu,Drawer, Form, Col, Row, Input, Select, DatePicker, Icon,Modal} from 'antd';
 import { sp } from '@pnp/sp';
 import * as moment from 'moment';
 import {ApproveListItem} from './ApproveListItem';
@@ -11,8 +11,11 @@ const { Option } = Select;
 export default class BusinessApplication extends React.Component<IBusinessApplicationProps, {}> {
 
   state = {
+    loading: false,
     data: null,
-    visible: false
+    visible: false,
+    visible1: false,
+    dataList:null
   }
   showDrawer = () => {
     this.setState({
@@ -27,6 +30,40 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   };
 
 
+  public showModal= (itemId) => {
+    
+    this.getPage(itemId);
+    this.setState({
+      
+      visible1: true,
+    });
+  };
+
+  public  handleOk = (e) => {
+    this.setState({
+      ModalText:'页面几秒后关闭',
+      loading: true });
+    /* let demo=this.refs.getFormVlaue;
+    demo.validateFields((err,values)=>{
+      if(!err){
+        console.log(values);
+      }
+    }) */
+    setTimeout(() => {
+      this.setState({ loading: false, visible1: false });
+    }, 3000);
+  };
+
+  public  handleCancel = () => {
+    this.setState({ visible1: false });
+  };
+  public File = () => {
+    this.setState({ visible1: false });
+  };
+  public Circulate = () => {
+    this.setState({ visible1: false });
+  };
+
 
 
 
@@ -34,7 +71,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     {
       title: '标题',
       dataIndex: 'Title',
-      key: 'Title'
+      key: 'Title',
+      render: text => <a onClick={this.showModal.bind(this,'65')} id='buttonck'>{text}</a>,
     },
 
     {
@@ -74,6 +112,26 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     }
     );
   }
+
+  private getPage(itemId) {
+
+
+    sp.web.lists.getByTitle('审批').items.filter('ApproveID eq ' + itemId).getAll().then(items => {
+
+      
+      if (items.length > 0) {
+       
+        this.setState({
+
+          dataList: items
+
+        })
+
+      }
+
+    });  
+
+}
   /**
   * 切换TAB页时候的数据重新渲染
   * 根据实际情况修改，flag表示类型
@@ -108,7 +166,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   }
 
   public render(): React.ReactElement<IBusinessApplicationProps> {
-    const { data } = this.state;
+    const { visible1,  visible, loading,data,dataList } = this.state;
     console.log(data);
     return (
     
@@ -132,7 +190,44 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           <TabPane tab='查询' key='6'></TabPane>
         </Tabs> */}
        {/* 创建DrawerForm */}
-      
+
+
+        {/* yufan */}
+        <Modal
+          width='800'
+          visible={visible1}
+          title='待审阅'
+          centered
+          onCancel={this.handleCancel}
+          footer={null}
+        >            
+             <Table columns={this.columns} rowKey='ApproveID' dataSource={dataList} size='small' /> 
+            
+            {/* <div>{dataList.ApproveID}</div> */}
+            <table>
+              <tbody id='items'>
+                <tr>
+                  <td>标题:</td>
+                  <td>dffddf</td>
+                </tr>
+              </tbody>
+            </table>
+            <Button key='Circulate' onClick={this.Circulate}>
+              传阅
+            </Button>
+
+            <Button key='submit' type='primary' loading={loading} onClick={this.handleOk}>
+            处理
+            </Button>
+            <Button key='back' type='danger' onClick={this.handleCancel}>
+            退回
+            </Button>
+            <Button key='File' onClick={this.File}>
+            归档
+            </Button>
+        </Modal>
+
+
        <Drawer
           title="提交业务申请"
           width={720}

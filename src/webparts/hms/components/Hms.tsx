@@ -6,7 +6,7 @@ import { IHmsProps } from './IHmsProps';
 
 import { escape } from '@microsoft/sp-lodash-subset';
 
-import { sp } from "@pnp/sp";
+import { sp } from '@pnp/sp';
 
 import { Table, Divider, Button,Modal,Icon, Alert,Form} from 'antd';
 
@@ -73,7 +73,7 @@ export default class HMS extends React.Component<IHmsProps, {}> {
 
       key: 'ApproveID',
 
-       render: text => <a onClick={this.showModal.bind(this,text)} id='buttonck'>{text}</a>,//TODO:标题字数限制
+       render: text => <a onClick={this.showModal.bind(this,text)} id='buttonck'>{text}</a>,// TODO:标题字数限制
 
     },
 
@@ -85,7 +85,7 @@ export default class HMS extends React.Component<IHmsProps, {}> {
 
       key: 'Title',
 
-       //render: text => <a onClick={this.showModal.bind(this,text)} id='buttonck'>{text}</a>,
+       // render: text => <a onClick={this.showModal.bind(this,text)} id='buttonck'>{text}</a>,
 
     },
 
@@ -97,7 +97,7 @@ export default class HMS extends React.Component<IHmsProps, {}> {
 
       key: 'ApproveTime',
 
-      render: text => <a>{moment(text).format('YYYY-MM-DD')}</a>,//TODO：日期格式化
+      render: text => <a>{moment(text).format('YYYY-MM-DD')}</a>,// TODO：日期格式化
 
     },
 
@@ -111,11 +111,11 @@ export default class HMS extends React.Component<IHmsProps, {}> {
 
         <span>
 
-          <a href="javascript:;">处理 {record.name}</a>
+          <a href='javascript:;'>处理 {record.name}</a>
 
-          <Divider type="vertical" />
+          <Divider type='vertical' />
 
-          <a href="javascript:;">删除</a>
+          <a href='javascript:;'>删除</a>
 
         </span>
 
@@ -138,7 +138,7 @@ export default class HMS extends React.Component<IHmsProps, {}> {
 
     sp.web.currentUser.get().then(current_user => {
 
-      sp.web.lists.getByTitle("业务申请").items.filter('createUser eq ' + current_user.Id).getAll().then(items => {
+      sp.web.lists.getByTitle('业务申请').items.filter('createUser eq ' + current_user.Id).getAll().then(items => {
 
         if (items.length > 0) {
 
@@ -161,7 +161,7 @@ export default class HMS extends React.Component<IHmsProps, {}> {
   private getPage(itemId) {
 
 
-      sp.web.lists.getByTitle("业务申请").items.filter('ApproveID eq ' + itemId).getAll().then(items => {
+      sp.web.lists.getByTitle('业务申请').items.filter('ApproveID eq ' + itemId).getAll().then(items => {
 
         
         if (items.length > 0) {
@@ -189,7 +189,7 @@ export default class HMS extends React.Component<IHmsProps, {}> {
 
     sp.web.currentUser.get().then(current_user => {
 
-      sp.web.lists.getByTitle("业务申请").items.filter('createUser eq ' + current_user.Id).getAll().then(items => {
+      sp.web.lists.getByTitle('业务申请').items.filter('createUser eq ' + current_user.Id).getAll().then(items => {
 
         if (items.length > 0) {
 
@@ -227,7 +227,6 @@ export default class HMS extends React.Component<IHmsProps, {}> {
 
     const { visible, loading,data,dataList} = this.state;
     
-  
     console.log(dataList);
 
     return (
@@ -254,10 +253,10 @@ export default class HMS extends React.Component<IHmsProps, {}> {
             
             {/* <div>{dataList.ApproveID}</div> */}
             <table>
-              <tbody id="items">
+              <tbody id='items'>
                 <tr>
-                  <td>标题</td>
-                  <td></td>
+                  <td>标题:</td>
+                  <td>dffddf</td>
                 </tr>
               </tbody>
             </table>
@@ -268,7 +267,7 @@ export default class HMS extends React.Component<IHmsProps, {}> {
             <Button key='submit' type='primary' loading={loading} onClick={this.handleOk}>
             处理
             </Button>
-            <Button key='back' type="danger" onClick={this.handleCancel}>
+            <Button key='back' type='danger' onClick={this.handleCancel}>
             退回
             </Button>
             <Button key='File' onClick={this.File}>
