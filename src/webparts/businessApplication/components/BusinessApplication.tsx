@@ -26,7 +26,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   };
 
 
-  public showModal= (itemId) => {
+  private showModal= (itemId) => {
     
     this.getPage(itemId);
     this.setState({
@@ -68,7 +68,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       title: '标题',
       dataIndex: 'Title',
       key: 'Title',
-      render: text => <a onClick={this.showModal.bind(this,'65')} id='buttonck'>{text}</a>,
+      render: (text,row)=> <a onClick={this.showModal.bind(this,row.ApproveID)} id='buttonck'>{text}</a>,
     },
 
     {
@@ -81,7 +81,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       title: '申请时间',
       dataIndex: 'createTime',
       key: 'createTime',
-      render: text => <a>{moment(text).format('YYYY-MM-DD  hh:mm')}</a> // TODO：日期格式化
+      render: text => <span>{moment(text).format('YYYY-MM-DD  hh:mm')}</span> // TODO：日期格式化
     }
   ];
   constructor(props) {
@@ -177,7 +177,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
   public render(): React.ReactElement<IBusinessApplicationProps> {
     const { visible1,  visible, loading,data,dataList } = this.state;
-    console.log(data);
+    //this.getPage('65');
+   // console.log(data["0"].ApproveID);
     return (
     
       <div  >
@@ -204,21 +205,21 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
         {/* yufan */}
         <Modal
-          width='800'
+          width={800}
           visible={visible1}
           title='待审阅'
           centered
           onCancel={this.handleCancel}
           footer={null}
         >            
-             <Table columns={this.columns} rowKey='ApproveID' dataSource={dataList} size='small' /> 
+             <Table columns={this.columns} rowKey='ApproveID' dataSource={dataList} size='small' />  
             
             {/* <div>{dataList.ApproveID}</div> */}
             <table>
               <tbody id='items'>
                 <tr>
                   <td>标题:</td>
-                  <td>dffddf</td>
+                  <td></td>
                 </tr>
               </tbody>
             </table>
