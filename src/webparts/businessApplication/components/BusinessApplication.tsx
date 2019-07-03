@@ -2,21 +2,23 @@ import * as React from 'react';
 import styles from './BusinessApplication.module.scss';
 import { IBusinessApplicationProps } from './IBusinessApplicationProps';
 import 'antd/dist/antd.css';
-import { Tabs, Button, Table, Menu, Drawer, Form, Col, Row, Input, Select, DatePicker, Icon, Modal } from 'antd';
-import { sp } from '@pnp/sp';
+import { Tabs, Button, Table, Menu,Drawer, Form, Col, Row, Input, Select,Upload, DatePicker, Icon,Modal} from 'antd';
+import { sp, Items } from '@pnp/sp';
 import * as moment from 'moment';
 import { ApproveListItem } from './ApproveListItem';
 import { IBusinessApplicationState } from './IBusinessApplicationState';
 import { CurrentUser } from '@pnp/sp/src/siteusers';
 const { Option } = Select;
+const { Dragger } = Upload;
 export default class BusinessApplication extends React.Component<IBusinessApplicationProps, {}> {
 
   state = {
     loading: false,
     data: null,
-    visible: false,
+    visible: false,//添加抽屉状态
     visible1: false,
-    dataList: null
+    dataList:null,
+    typeList:null //分类list
   }
 
 
@@ -25,7 +27,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       visible: false,
     });
   };
-
+    
+  
 
   public showModal = (itemId) => {
 
@@ -86,6 +89,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       render: text => <a>{moment(text).format('YYYY-MM-DD  hh:mm')}</a> // TODO：日期格式化
     }
   ];
+
+
   constructor(props) {
     super(props);
     this.getPageList();
@@ -96,17 +101,30 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     this.setState({
       visible: true
     });
-
-  }
+    this.getType();
+  }  
 
   //获取当前登录用户部门
   private getUserDeptName() {
 
   }
-
+ 
   //初始化分类
-  private getType() {
-
+  private getType()
+  {
+    
+    const options = [];
+    sp.web.lists.getByTitle('分类').items.getAll().then(Items=>{
+      if(Items.length>0)
+      {
+         for (let index = 0; index < Items.length; index++) {
+          options.push( <Option value={Items[index]['Title']}>{Items[index]['Title']}</Option>); 
+         }
+         this.setState({
+          typeList:options,
+         });
+      }
+    });
   }
   //.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime', true)
   private getPageList() {
@@ -201,13 +219,12 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           <Button onClick={this.createItem.bind(this)} style={{ float: 'right' }}>申请</Button>
         </Menu>
         <div>
-          {/* <Table columns={this.columns} rowKey='ApproveID' dataSource={data} size='small' /> */}
-          <this.men data={data} columns={this.columns}></this.men>
+          <Table columns={this.columns} rowKey='ApproveID' dataSource={data} size='small' />
         </div>
 
         {/* yufan */}
         <Modal
-          width='800'
+          width={800}
           visible={visible1}
           title='待审阅'
           centered
@@ -243,11 +260,12 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
         <Drawer
           title="提交业务申请"
-          width={720}
+          width={580}
+          style={{marginBottom:0}}
           onClose={this.onClose}
           visible={this.state.visible}
         >
-          <Form layout="inline" >
+          <Form layout="vertical" >
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item label="单位">
@@ -256,20 +274,61 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               </Col>
               <Col span={12}>
                 <Form.Item label="类型">
-
-                  <Select placeholder="请选择类型" >
-
-                  </Select>
-
+              
+                    <Select placeholder="请选择类型"
+                    >
+                    {this.state.typeList}
+                    </Select>
+                 
                 </Form.Item>
               </Col>
             </Row>
             <Row gutter={16}>
-              <Col span={12}>
-
-              </Col>
-
+               <Col span={24}>
+                <Form.Item label="标题"  >
+                <Input />
+                </Form.Item>
+               </Col>
             </Row>
+
+            <Row gutter={16}>
+              <Col span={24}>
+                <Form.Item label="内容">
+                 <Input.TextArea rows={4} placeholder="请输入内容" className={styles.textalign} />
+                </Form.Item>
+              </Col>
+              </Row>
+              <Row gutter={8}>
+                <Col span={24}>
+                 <Form.Item label="附件">
+                  <Dragger {...this.props}>
+                  {/*  <p className="ant-upload-drag-icon">
+                    图片显示样式效果
+                   </p> */}
+                   <p className="ant-upload-text"><Icon type="inbox" />点击或拖拽至此处</p>
+                   <p className="ant-upload-hint">
+                    支持单个或批量上传。严禁上传公司保密数据
+                   </p>
+                   </Dragger>
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={8}>
+               <Col span={24}>
+                <Form.Item label="审阅人"  >
+                <Input />
+                </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={8}>
+               <Col span={24}>
+                <Form.Item label="传阅人"  >
+                <Input />
+                </Form.Item>
+                </Col>
+              </Row>
+
+
           </Form>
           <div
             style={{
@@ -278,16 +337,17 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               bottom: 0,
               width: '100%',
               borderTop: '1px solid #e9e9e9',
-              padding: '10px 16px',
+              padding: '5px 16px',
               background: '#fff',
               textAlign: 'right',
+               marginBottom:0,
             }}
           >
             <Button onClick={this.onClose} style={{ marginRight: 8 }}>
               取消
             </Button>
             <Button onClick={this.onClose} type="primary">
-              Submit
+              提交
             </Button>
           </div>
         </Drawer>
