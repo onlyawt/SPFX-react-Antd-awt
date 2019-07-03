@@ -12,23 +12,16 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
   state = {
     data: null,
-    visible: false
+    visible: false, //添加抽屉状态
+    deptName:null   //部门名称
   }
-  showDrawer = () => {
-    this.setState({
-      visible: true,
-    });
-  };
+
 
   onClose = () => {
     this.setState({
       visible: false,
     });
   };
-
-
-
-
 
   columns  = [
     {
@@ -56,11 +49,24 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   }
   
 //添加Item
-  private createItem(): void {   
-    this.showDrawer();
-    alert("sdds");
+  private createItem() {   
+    this.setState({
+      visible: true,
+    });
+    
   }  
 
+  //获取当前登录用户部门
+  private getUserDeptName()
+  {
+
+  }
+
+  //初始化分类
+  private getType()
+  {
+
+  }
 
   private getPageList() {
     sp.web.currentUser.get().then(current_user => {
@@ -107,6 +113,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
   }
 
+
   public render(): React.ReactElement<IBusinessApplicationProps> {
     const { data } = this.state;
     console.log(data);
@@ -117,7 +124,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           <Menu.Item key='1' onClick={this.getPageList.bind(this)}>待办</Menu.Item>
           <Menu.Item key='2' onClick={this.handleChange.bind(this)}>已办</Menu.Item>
           <Menu.Item key='3' onClick={this.handleMyApply.bind(this)}>我的</Menu.Item>
-        <Button onClick={this.showDrawer}>申请</Button>
+        <Button onClick={this.createItem.bind(this)}>申请</Button>
         </Menu>
         <div>
           <Table columns={this.columns} rowKey='ApproveID' dataSource={data} size='small' />
@@ -149,7 +156,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               <Col span={12}>
                 <Form.Item label="类型">
               
-                    <Select placeholder="请选择类型">
+                    <Select placeholder="请选择类型" >
                       
                     </Select>
                  
@@ -189,3 +196,4 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     );
   }
 }
+
