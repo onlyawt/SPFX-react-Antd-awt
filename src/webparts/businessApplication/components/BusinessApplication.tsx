@@ -2,20 +2,22 @@ import * as React from 'react';
 import styles from './BusinessApplication.module.scss';
 import { IBusinessApplicationProps } from './IBusinessApplicationProps';
 import 'antd/dist/antd.css';
-import { Tabs, Button, Table, Menu,Drawer, Form, Col, Row, Input, Select, DatePicker, Icon,Modal} from 'antd';
-import { sp } from '@pnp/sp';
+import { Tabs, Button, Table, Menu,Drawer, Form, Col, Row, Input, Select,Upload, DatePicker, Icon,Modal} from 'antd';
+import { sp, Items } from '@pnp/sp';
 import * as moment from 'moment';
 import {ApproveListItem} from './ApproveListItem';
 import {IBusinessApplicationState} from './IBusinessApplicationState';
 const { Option } = Select;
+const { Dragger } = Upload;
 export default class BusinessApplication extends React.Component<IBusinessApplicationProps, {}> {
 
   state = {
     loading: false,
     data: null,
-    visible: false,
+    visible: false,//添加抽屉状态
     visible1: false,
-    dataList:null
+    dataList:null,
+    typeList:null //分类list
   }
 
 
@@ -24,7 +26,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       visible: false,
     });
   };
-
+    
+  
 
   public showModal= (itemId) => {
     
@@ -61,8 +64,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   };
 
 
-
-
   columns  = [
     {
       title: '标题',
@@ -84,6 +85,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       render: text => <a>{moment(text).format('YYYY-MM-DD  hh:mm')}</a> // TODO：日期格式化
     }
   ];
+
+
   constructor(props) {
     super(props);
     this.getPageList();
@@ -94,7 +97,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     this.setState({
       visible: true
     });
-    
+    this.getType();
   }  
 
   //获取当前登录用户部门
@@ -102,11 +105,23 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   {
 
   }
-
+ 
   //初始化分类
   private getType()
   {
-
+    
+    const options = [];
+    sp.web.lists.getByTitle('分类').items.getAll().then(Items=>{
+      if(Items.length>0)
+      {
+         for (let index = 0; index < Items.length; index++) {
+          options.push( <Option value={Items[index]['Title']}>{Items[index]['Title']}</Option>); 
+         }
+         this.setState({
+          typeList:options,
+         });
+      }
+    });
   }
 
   private getPageList() {
@@ -204,7 +219,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
         {/* yufan */}
         <Modal
-          width='800'
+          width={800}
           visible={visible1}
           title='待审阅'
           centered
@@ -240,11 +255,11 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
        <Drawer
           title="提交业务申请"
-          width={720}
+          width={580}
           onClose={this.onClose}
           visible={this.state.visible}
         >
-          <Form layout="inline" >
+          <Form layout="vertical" >
             <Row gutter={16}>
               <Col span={12}>
                 <Form.Item label="单位">
@@ -254,19 +269,46 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               <Col span={12}>
                 <Form.Item label="类型">
               
-                    <Select placeholder="请选择类型" >
-                      
+                    <Select placeholder="请选择类型"
+                 
+                    >
+                    {this.state.typeList}
                     </Select>
                  
                 </Form.Item>
               </Col>
             </Row>
             <Row gutter={16}>
-               <Col span={12}>
-               
+               <Col span={24}>
+                <Form.Item label="标题"  >
+                <Input />
+                </Form.Item>
                </Col>
-
             </Row>
+
+            <Row gutter={16}>
+              <Col span={24}>
+                <Form.Item label="内容">
+                 <Input.TextArea rows={4} placeholder="请输入内容" className={styles.textalign} />
+                </Form.Item>
+              </Col>
+              </Row>
+              <Row gutter={8}>
+                <Col span={24}>
+                <Form.Item label="附件">
+                <Dragger {...this.props}>
+    <p className="ant-upload-drag-icon">
+      <Icon type="inbox" />
+    </p>
+    <p className="ant-upload-text">点击或拖拽至此处</p>
+    <p className="ant-upload-hint">
+      Support for a single or bulk upload. Strictly prohibit from uploading company data or other
+      band files
+    </p>
+  </Dragger>
+  </Form.Item>
+                </Col>
+              </Row>
           </Form>
           <div
             style={{
@@ -284,7 +326,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               取消
             </Button>
             <Button onClick={this.onClose} type="primary">
-              Submit
+              提交
             </Button>
           </div>
         </Drawer>
