@@ -158,16 +158,17 @@ private getPageList(key) {
     sp.web.currentUser.get().then(current_user => {
     console.log(key.key)
     if(key.key==1){
-      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).getAll();
+      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime',false).get();
     }
     else if(key.key==2){
-      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUsersId eq ' + current_user.Id).orderBy('Title').getAll();
+      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUsersId eq ' + current_user.Id).orderBy('createTime',false).get();
+      console.log(Approval);
     }
     else if(key.key==3){
-      Approval = sp.web.lists.getByTitle('审批').items.filter('createUserId eq ' + current_user.Id).getAll();
+      Approval = sp.web.lists.getByTitle('审批').items.filter('createUserId eq ' + current_user.Id).orderBy('createTime',false).get();
     }
     else{
-      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).getAll();
+      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime',false).get();
     }
       Approval.then(items => {
         if(items.length > 0){
@@ -210,43 +211,9 @@ private getPageList(key) {
   /**
   * 已办查询
   */
-  public alreadyDone() {
-    sp.web.currentUser.get().then(current_user => {
-      sp.web.lists.getByTitle('审批').items.filter('ApprovalUsersId eq ' + current_user.Id).getAll().then(items => {
-        if (items.length > 0) {
-          items.forEach(item => {
-            sp.web.getUserById(item.createUserId).get().then(user => {
-              item.createUserName = user.Title;
-              this.setState({
-                data: items,
-              });
-            });
-          });
-        }
-      });
-    }
-    );
-  }
   /**
   * 我的发起查询
   */
-  public aboutMe() {
-    sp.web.currentUser.get().then(current_user => {
-      sp.web.lists.getByTitle('审批').items.filter('createUserId eq ' + current_user.Id).getAll().then(items => {
-        if (items.length > 0) {
-          items.forEach(item => {
-            sp.web.getUserById(item.createUserId).get().then(user => {
-              item.createUserName = user.Title;
-              this.setState({
-                data: items,
-              });
-            });
-          });
-        }
-      });
-    }
-    );
-  }
   /**
   * 页面渲染
   */
