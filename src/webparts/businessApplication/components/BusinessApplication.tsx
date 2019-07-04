@@ -100,32 +100,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       dataIndex: 'createTime',
       key: 'createTime',
       width: '20%',
+      SortOrder: 'descend',
       render: text => <a className={styles.titlestyle}>{moment(text).format('YYYY-MM-DD')}</a> // TODO：日期格式化
     }
   ];
-  columns2 = [
-    {
-      title: '标题',
-      dataIndex: 'Title',
-      key: 'Title',
-      render: text => <a onClick={this.showModal.bind(this, '65')} id='buttonck'>{text}</a>,
-    },
-
-    {
-      title: '审阅人',
-      dataIndex: 'createUserName',
-      key: 'createUserName'
-    },
-
-    {
-      title: '申请时间',
-      dataIndex: 'createTime',
-      key: 'createTime',
-      render: text => <a>{moment(text).format('YYYY-MM-DD  hh:mm')}</a> // TODO：日期格式化
-    }
-  ];
-
-
 
   constructor(props) {
     super(props);
@@ -173,7 +151,7 @@ public approveTypefn(aid,event) {
     this.setState({approveDiv:"阅"});
   }
 }
-  private getPageList(key) {
+private getPageList(key) {
     let Approval=null;
     sp.web.currentUser.get().then(current_user => {
     console.log(key.key)
@@ -188,9 +166,9 @@ public approveTypefn(aid,event) {
     }
     else{
       Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).getAll();
-      console.log('123456');
     }
       Approval.then(items => {
+        if(items.length > 0){
           items.forEach(item => {
             sp.web.getUserById(item.createUserId).get().then(user => {
               item.createUserName = user.Title;
@@ -199,9 +177,14 @@ public approveTypefn(aid,event) {
               });
             });
           });
+        }
+        else if(items.length == 0){
+          this.setState({
+            data: null
+          })
+        }
       });
     });
-
   }
   /**
   * 根据id查询单条数据
@@ -267,7 +250,7 @@ public approveTypefn(aid,event) {
   */
   public render(): React.ReactElement<IBusinessApplicationProps> {
     const { visible1, visible, loading, data, Title } = this.state;
-   // console.log(data);
+   console.log(data);
     return (
 
       <div  className={styles.businessApplication}>
@@ -278,7 +261,7 @@ public approveTypefn(aid,event) {
           <Button onClick={this.createItem.bind(this)} className={styles.applyb}>申请</Button>
         </Menu>
         <div>
-          <Table columns={this.columns} rowKey='ApproveID' dataSource={data} size='small' />
+          <Table columns={this.columns} rowKey='ApproveID' dataSource={data} size='small' pagination={{pageSize:5}}/>
         </div>
 
         <Modal
@@ -386,7 +369,7 @@ public approveTypefn(aid,event) {
             <Row gutter={8}>
                <Col span={24}>
                  <Form.Item label="审阅" >
-                 <Menu mode='horizontal'  >
+                 <Menu mode='horizontal'  className={styles.menu} >
                   <Menu.Item key='1' onClick={this.approveTypefn.bind(this,'办')}>办</Menu.Item>
                   <Menu.Item key='2' onClick={this.approveTypefn.bind(this,'阅')}>阅</Menu.Item>
                   </Menu>
