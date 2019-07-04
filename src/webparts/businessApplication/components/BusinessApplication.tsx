@@ -2,7 +2,7 @@ import * as React from 'react';
 import styles from './BusinessApplication.module.scss';
 import { IBusinessApplicationProps } from './IBusinessApplicationProps';
 import 'antd/dist/antd.css';
-import { Tabs, Button, Table, Menu,Drawer, Form, Col, Row, Input, Select,Upload, DatePicker, Icon,Modal} from 'antd';
+import { Popover,Button, Table, Menu,Drawer, Form, Col, Row, Input, Select,Upload, DatePicker, Icon,Modal} from 'antd';
 import { sp, Items } from '@pnp/sp';
 import * as moment from 'moment';
 import { ApproveListItem } from './ApproveListItem';
@@ -73,11 +73,40 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       title: '标题',
       dataIndex: 'Title',
       key: 'Title',
+      width: '50%',
+      render: text =><Popover placement="topLeft" content={
+        <div>
+          <p>标题：{text}</p>
+        </div>
+      }> <a onClick={this.showModal.bind(this, '65')} id='buttonck' className={styles.titlestyle}>{text}</a></Popover>,
+    },
+
+    // {
+    //   title: '申请人',
+    //   dataIndex: 'createUserName',
+    //   key: 'createUserName',
+    //   width: '20%',
+    //   render: (text) => <span className={styles.titlestyle}>{text}</span>,
+    // },
+
+    {
+      title: '申请时间',
+      dataIndex: 'createTime',
+      key: 'createTime',
+      width: '20%',
+      render: text => <a className={styles.titlestyle}>{moment(text).format('YYYY-MM-DD')}</a> // TODO：日期格式化
+    }
+  ];
+  columns2 = [
+    {
+      title: '标题',
+      dataIndex: 'Title',
+      key: 'Title',
       render: text => <a onClick={this.showModal.bind(this, '65')} id='buttonck'>{text}</a>,
     },
 
     {
-      title: '申请人',
+      title: '审阅人',
       dataIndex: 'createUserName',
       key: 'createUserName'
     },
@@ -91,9 +120,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   ];
 
 
+
   constructor(props) {
     super(props);
-    this.getPageList();
+    this.getPageList(props);
   }
 
   //添加Item
@@ -127,10 +157,24 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     });
   }
   //.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime', true)
-  private getPageList() {
+  private getPageList(key) {
+    let Approval=null;
     sp.web.currentUser.get().then(current_user => {
-      sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime', true).getAll().then(items => {
-        if (items.length > 0) {
+    console.log(key.key)
+    if(key.key==1){
+      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).getAll();
+    }
+    else if(key.key==2){
+      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUsersId eq ' + current_user.Id).getAll();
+    }
+    else if(key.key==3){
+      Approval = sp.web.lists.getByTitle('审批').items.filter('createUserId eq ' + current_user.Id).getAll();
+    }
+    else{
+      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).getAll();
+      console.log('123456');
+    }
+      Approval.then(items => {
           items.forEach(item => {
             sp.web.getUserById(item.createUserId).get().then(user => {
             item.createUserName = user.Title;
@@ -139,10 +183,9 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               });
             });
           });
-        }
       });
-    }
-    );
+    });
+
   }
 
   private getPage(itemId) {
@@ -160,49 +203,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   * 切换TAB页时候的数据重新渲染
   * 根据实际情况修改，flag表示类型
   */
-  public handleChange() {
-    sp.web.currentUser.get().then(current_user => {
-      sp.web.lists.getByTitle('审批').items.filter('ApprovalUsersId eq ' + current_user.Id).getAll().then(items => {
-        if (items.length > 0) {
-          items.forEach(item => {
-            sp.web.getUserById(item.createUserId).get().then(user => {
-            item.createUserName = user.Title;
-              this.setState({
-                data: items,
-              });
-            });
-          });
-        }
-      });
-    }
-    );
-  }
-  public handleMyApply() {
-    sp.web.currentUser.get().then(current_user => {
-      sp.web.lists.getByTitle('审批').items.filter('createUserId eq ' + current_user.Id).getAll().then(items => {
-        if (items.length > 0) {
-          items.forEach(item => {
-            sp.web.getUserById(item.createUserId).get().then(user => {
-            item.createUserName = user.Title;
-              this.setState({
-                data: items,
-              });
-            });
-          });
-        }
-      });
-    }
-    );
-  }
 
-  public handleDelete() {
-
-    console.log('147');
-
-  }
-  public men(props) {
+  private men(props) {
     return (
-    <Table columns={props.columns} rowKey='ApproveID' dataSource={props.data} size='small' />
+    <Table columns={props.columns} rowKey='ApproveID' dataSource={props.data} size='small' pagination={{defaultPageSize:5}} />
     )
   }
 
@@ -211,15 +215,16 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     console.log(data);
     return (
 
-      <div  >
-        <Menu mode='horizontal' defaultSelectedKeys={['1']} className={styles.menu} >
+      <div  className={styles.businessApplication}>
+        <Menu mode='horizontal' defaultSelectedKeys={['1']}  >
           <Menu.Item key='1' onClick={this.getPageList.bind(this)}>待办</Menu.Item>
-          <Menu.Item key='2' onClick={this.handleChange.bind(this)}>已办</Menu.Item>
-          <Menu.Item key='3' onClick={this.handleMyApply.bind(this)}>我的</Menu.Item>
-          <Button onClick={this.createItem.bind(this)} style={{ float: 'right' }}>申请</Button>
+          <Menu.Item key='2' onClick={this.getPageList.bind(this)}>已办</Menu.Item>
+          <Menu.Item key='3' onClick={this.getPageList.bind(this)}>我的</Menu.Item>
+          <Button onClick={this.createItem.bind(this)} className={styles.applyb}>申请</Button>
         </Menu>
         <div>
-          <Table columns={this.columns} rowKey='ApproveID' dataSource={data} size='small' />
+          <this.men data={data} columns={this.columns}></this.men>
+          {/* <Table columns={this.columns} rowKey='ApproveID' dataSource={data} size='small' /> */}
         </div>
 
         {/* yufan */}

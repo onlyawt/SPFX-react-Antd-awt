@@ -26,6 +26,11 @@
     @include ms-font-xl;
     @include ms-fontColor-white;
   }
+  .applyb{
+    float: right;
+    margin-top: 5px;
+  }
+
 
   .subTitle {
     @include ms-font-l;
@@ -117,11 +122,25 @@
     border-collapse: collapse;
     margin: 0 auto;
   }
-  .menu{
-  width: 120px;
-  height: 31px;
-  background: rgba(255, 255, 255, 0.2);
-  margin: 16px 24px 16px 0;
-  float: left;
+  // .menu{
+  // width: 120px;
+  // height: 31px;
+  // background: rgba(255, 255, 255, 0.2);
+  // margin: 16px 24px 16px 0;
+  // float: left;
+  // .applu{
+  //   float: right;
+  //   margin-top: 5px;
+  // }
+  // }
+  .titlestyle{
+    overflow : hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+  }
+  .ant-table-tbody>tr>td{
+    padding: 0 !important;
   }
 }
