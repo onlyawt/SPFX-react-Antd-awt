@@ -2,7 +2,7 @@ import * as React from 'react';
 import styles from './BusinessApplication.module.scss';
 import { IBusinessApplicationProps } from './IBusinessApplicationProps';
 import 'antd/dist/antd.css';
-import { Tabs, Button, Table, Menu, Drawer, Form, Col, Row, Input, Select, Upload, DatePicker, Icon, Modal } from 'antd';
+import { Tabs, Button, Table, Menu, Drawer, Form, Radio,Col, Row, Input, Select, Upload, DatePicker, Icon, Modal } from 'antd';
 import { sp, Items } from '@pnp/sp';
 import * as moment from 'moment';
 import { ApproveListItem } from './ApproveListItem';
@@ -16,7 +16,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     visible: false,//添加抽屉状态
     visible1: false,
     Title: null,
-    typeList: null //分类list
+   // typeList: null //分类list
+   approveDiv:"办" //办、阅状态
   }
 
   columns = [
@@ -96,27 +97,23 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     this.getPageList();
   }
 
-  //添加Item
-  public createItem() {
+  //显示添加窗体
+  public createItem(){
     this.setState({
       visible: true
     });
-    this.getType();
+   // this.getType();
   }
 
-  //获取当前登录用户部门
-<<<<<<< HEAD
-  private getUserDeptName()
-  {
-     
-=======
-  public getUserDeptName() {
-
->>>>>>> 6b64f528407c82770ed490a63a6e86bfa18c578a
+  //添加Item数据
+  public itemAdd(){
+   
+    
   }
+ 
 
   //初始化分类
-  public getType() {
+ /*  public getType() {
 
     const options = [];
     sp.web.lists.getByTitle('分类').items.getAll().then(Items => {
@@ -129,7 +126,19 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         });
       }
     });
+  } */
+  // 初始化办、阅人员选择内容;aid 标签状态1办，2是阅
+public approveTypefn(aid,event) {
+  var i=aid;
+  if(i=="办"){
+      this.setState({approveDiv:"办"});
   }
+  else if(i=="阅")
+  {
+    this.setState({approveDiv:"阅"});
+  }
+}
+
   /**
    * 待办查询
    */
@@ -214,7 +223,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   */
   public render(): React.ReactElement<IBusinessApplicationProps> {
     const { visible1, visible, loading, data, Title } = this.state;
-    console.log(data);
+   // console.log(data);
     return (
 
       <div  >
@@ -271,7 +280,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           visible={this.state.visible}
         >
           <Form layout="vertical" >
-            <Row gutter={16}>
+            {/* <Row gutter={16}>
               <Col span={12}>
                 <Form.Item label="单位">
                   <label ></label>
@@ -287,11 +296,23 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
                 </Form.Item>
               </Col>
+            </Row> */}
+            <Row gutter={16}>
+            <Col span={24}>
+                <Form.Item label="类型"  >
+                <Radio.Group defaultValue="a" buttonStyle="solid">
+                <Radio.Button value="a">文档</Radio.Button>
+                <Radio.Button value="b">设备维修</Radio.Button>
+                <Radio.Button value="c">计算机耗材申请</Radio.Button>
+                <Radio.Button value="d">其他</Radio.Button>
+                </Radio.Group>
+                </Form.Item>
+            </Col>
             </Row>
             <Row gutter={16}>
               <Col span={24}>
-                <Form.Item label="标题"  >
-                  <Input />
+                <Form.Item label="标题" >
+                  <Input  />
                 </Form.Item>
               </Col>
             </Row>
@@ -307,20 +328,31 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               <Col span={24}>
                 <Form.Item label="附件">
                   <Upload.Dragger {...this.props}>
-                    <p className="ant-upload-drag-icon">
-                      <Icon type="inbox" />
-                    </p>
-                    <p className="ant-upload-text">点击或拖拽至此处</p>
+                   {/*  <p className="ant-upload-drag-icon">
+                     
+                    </p> */}
+                    <p className="ant-upload-text"> <Icon type="inbox" />点击或拖拽至此处</p>
                     <p className="ant-upload-hint">
-                      Support for a single or bulk upload. Strictly prohibit from uploading company data or other
-                      band files
+                    支持单个或批量上传，严谨传公司保密文件。
                     </p>
                   </Upload.Dragger>
                 </Form.Item>
               </Col>
             </Row>
+            <Row gutter={8}>
+               <Col span={24}>
+                 <Form.Item label="审阅">
+                 <Menu mode='horizontal'  className={styles.menu} >
+                  <Menu.Item key='1' onClick={this.approveTypefn.bind(this,'办')}>办</Menu.Item>
+                  <Menu.Item key='2' onClick={this.approveTypefn.bind(this,'阅')}>阅</Menu.Item>
+                  </Menu>
+                  <div>
+                  {this.state.approveDiv}
+                  </div>
+                 </Form.Item>
+               </Col>
 
-
+            </Row>
           </Form>
           <div
             style={{
@@ -338,7 +370,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             <Button onClick={this.onClose} style={{ marginRight: 8 }}>
               取消
             </Button>
-            <Button onClick={this.onClose} type="primary">
+            <Button onClick={this.itemAdd.bind(this)} type="primary">
               提交
             </Button>
           </div>
