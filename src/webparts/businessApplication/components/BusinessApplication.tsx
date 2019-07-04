@@ -71,8 +71,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     this.setState({ visible1: false });
   };
 
-
-
+  colhigt = styles.colheight;
 
   columns = [
     {
@@ -80,6 +79,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       dataIndex: 'Title',
       key: 'Title',
       width: '50%',
+      // sortOrder: 'ascend',
+      // sortDirections: ['descend'],
       render: (text,row) =><Popover placement="topLeft" content={
         <div>
           <p>标题：{text}</p>
@@ -101,8 +102,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       title: '申请时间',
       dataIndex: 'createTime',
       key: 'createTime',
-      width: '20%',
-      SortOrder: 'descend',
+      sortDirections: ['ascend'],
       render: text => <a className={styles.titlestyle}>{moment(text).format('YYYY-MM-DD')}</a> // TODO：日期格式化
     }
   ];
@@ -161,7 +161,7 @@ private getPageList(key) {
       Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).getAll();
     }
     else if(key.key==2){
-      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUsersId eq ' + current_user.Id).getAll();
+      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUsersId eq ' + current_user.Id).orderBy('Title').getAll();
     }
     else if(key.key==3){
       Approval = sp.web.lists.getByTitle('审批').items.filter('createUserId eq ' + current_user.Id).getAll();
@@ -263,7 +263,7 @@ private getPageList(key) {
           <Button onClick={this.createItem.bind(this)} className={styles.applyb}>申请</Button>
         </Menu>
         <div>
-          <Table columns={this.columns} rowKey='ApproveID' dataSource={data} size='small' pagination={{pageSize:5}}/>
+          <Table columns={this.columns} rowClassName={()=>styles.colheight} rowKey='ApproveID' dataSource={data} size='small' pagination={{pageSize:5}} />
         </div>
 
         <Modal
