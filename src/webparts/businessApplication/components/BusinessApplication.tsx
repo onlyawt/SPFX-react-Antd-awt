@@ -80,9 +80,11 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       dataIndex: 'Title',
       key: 'Title',
       width: '50%',
-      render: text =><Popover placement="topLeft" content={
+      render: (text,row) =><Popover placement="topLeft" content={
         <div>
           <p>标题：{text}</p>
+          <p>申请人：{row.createUserName}</p>
+          <p>申请时间：{moment(row.createTime).format('YYYY-MM-DD HH:MM')}</p>
         </div>
       }> <a onClick={this.showModal.bind(this, '65')} id='buttonck' className={styles.titlestyle}>{text}</a></Popover>,
     },
