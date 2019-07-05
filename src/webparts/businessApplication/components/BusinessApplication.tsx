@@ -36,11 +36,11 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       width: '50%',
       // sortOrder: 'ascend',
       // sortDirections: ['descend'],
-      render: (text,row,index) =><Popover placement="topLeft" content={
+      render: (text,row,index) =><Popover placement='right' content={
         <div>
           <p>标题：{text}</p>
           <p>申请人：{row.createUserName}</p>
-          <p>申请时间：{moment(row.createTime).format('YYYY-MM-DD HH:MM')}</p>
+          <p>申请时间：{moment(row.createTime).format('YYYY-MM-DD hh:mm')}</p>
         </div>
       }> <a onClick={this.showModal.bind(this,row,index)} id='buttonck'>{text}</a></Popover>,
     },
@@ -319,7 +319,7 @@ private getPageList(key) {
   const Line = [];
   const lineC = [];
 
-  sp.web.lists.getByTitle('审批意见记录').items.filter('ItemId eq ' + itemId).orderBy('createTime', true).getAll().then(Items => {
+  sp.web.lists.getByTitle('审批意见记录').items.filter('ItemId eq ' + itemId).orderBy('createTime',false).getAll().then(Items => {
     if (Items.length > 0) {
       var strname:string='123';
       for (let index = 0; index < Items.length; index++) {
