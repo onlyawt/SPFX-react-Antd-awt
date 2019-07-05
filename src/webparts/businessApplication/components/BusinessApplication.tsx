@@ -272,7 +272,12 @@ private getPageList(key) {
       }
     });
   }
-
+  private optimizingData(strDate):string{
+    var msg = strDate.replace(/<\/?[^>]*>/g, ''); //去除HTML Tag
+            msg = msg.replace(/[|]*\n/, '') //去除行尾空格
+            msg = msg.replace(/&npsp;/ig, ''); //去掉npsp    
+    return msg;
+  }
   /**
    * 审阅信息查询
    * filter=%27ReadUsersId%20ne%20%27%20+%20currentUser.Id%20+%20%27%20and%20ApprovalUserId%20eq%20%27%20+%20currentUser.Id&$orderby=createTime%20desc
@@ -308,10 +313,10 @@ private getPageList(key) {
       })
     });
   }
-  /**
+   /**
   * 页面渲染
   */
- public timeLine(ID) {
+ public async timeLine(ID) {
   var id=ID;
   console.log(id);
   var itemId=2022;//打断数据传输
@@ -319,37 +324,33 @@ private getPageList(key) {
   const Line = [];
   const lineC = [];
 
-  sp.web.lists.getByTitle('审批意见记录').items.filter('ItemId eq ' + itemId).orderBy('createTime',false).getAll().then(Items => {
+  let Items = await sp.web.lists.getByTitle('审批意见记录').items.filter('ItemId eq ' + itemId).orderBy('CreateTime', true).get();
+  console.log(Items);
     if (Items.length > 0) {
       var strname:string='123';
       for (let index = 0; index < Items.length; index++) {
-        sp.web.getUserById(Items[index]['CreateUserStringId']).get().then(username => {
+        let username = await sp.web.getUserById(Items[index]['CreateUserStringId']).get();
           strname=username.Title;
-          console.log(strname);
-        if(Items[index]['Content']!=null)    {     
-        var msgT:string=Items[index]['Content'];
-        var msg = msgT.replace(/<\/?[^>]*>/g, ''); //去除HTML Tag
-        msg = msg.replace(/[|]*\n/, '') //去除行尾空格
-        msg = msg.replace(/&npsp;/ig, ''); //去掉npsp    
-        Line.push(<Steps.Step title={'处理人：'+strname+" — "+'处理时间：'+moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm')}
-        description={'审批意见：'+msg}/>); }
-        else{
-        Line.push(<Steps.Step title={'处理人：'+strname+" — "+'处理时间：'+moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm')}
-        description={'审批意见：'+'无审批意见'}/>);} 
-        lineC.push(Items[index]['Content']);
+          if(Items[index]['Content']!=null)    {     
+            var msgT:string=Items[index]['Content'];
+            var msg=this.optimizingData(msgT);
+            Line.push(<Steps.Step title={'处理人：'+strname+'['+moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm')+']'}
+            description={'审批意见：'+msg}/>); }
+            else{
+            Line.push(<Steps.Step title={'处理人：'+strname+'['+moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm')+']'}
+            description={'审批意见：'+'无审批意见'}/>);} 
+            lineC.push(Items[index]['Content']);
       
         // console.log(Items[index]);
         // console.log(Items[index].CreateUserStringId);
-        // console.log(Items[index]['createUserId']);       
-        }) 
+        // console.log(Items[index]['createUserId']);        
       }
       this.setState({
         timeList: Line,
         lineContent: lineC,
 
-      });  
-  };
-});
+  });
+}
 }
 
   public render(): React.ReactElement<IBusinessApplicationProps> {
@@ -403,7 +404,7 @@ private getPageList(key) {
               </tr>
               <tr>
                 <td>申请人:</td>
-                <td>{data?data[this.state.selindex].createUserName:'没有数据！'}</td>
+                <td>{data?this.optimizingData(data[this.state.selindex].createUserName):'没有数据！'}</td>
               </tr>
               <tr>
                 <td>申请时间:</td>
