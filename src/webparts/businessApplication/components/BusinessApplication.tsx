@@ -42,7 +42,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           <p>申请人：{row.createUserName}</p>
           <p>申请时间：{moment(row.createTime).format('YYYY-MM-DD hh:mm')}</p>
         </div>
-      }> <a onClick={this.showModal.bind(this,row,index)} id='buttonck'>{text}</a></Popover>,
+      }> <a onClick={this.showModal.bind(this,row,index)} id='buttonck' className={styles.titlestyle}>{text}</a></Popover>,
     },
     /* {
       title: '申请人',
@@ -56,9 +56,11 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       dataIndex: 'createTime',
       key: 'createTime',
       sortDirections: ['ascend'],
-      render: text => <span className={styles.titlestyle}>{moment(text).format('YYYY-MM-DD  hh:mm')}</span>,// TODO：日期格式化
+      render: text => <span className={styles.titlestyle}>{moment(text).format('YYYY-MM-DD')}</span>,// TODO：日期格式化
     }
   ];
+
+  
   /**
    * 退回按钮
    */
