@@ -2,13 +2,12 @@ import * as React from 'react';
 import styles from './BusinessApplication.module.scss';
 import { IBusinessApplicationProps } from './IBusinessApplicationProps';
 import 'antd/dist/antd.css';
-import { Tabs, Button, Table, Menu, Drawer, Form, Radio, Col, Row, Input, Select, Upload, DatePicker, Icon, Modal, Popover } from 'antd';
+import { Tabs, Button, Table, Menu, Drawer,message, Form, Radio,Col, Row, Input, Select, Upload, DatePicker, Icon, Modal, Popover } from 'antd';
 import { sp, Items } from '@pnp/sp';
 import * as moment from 'moment';
 import { ApproveListItem } from './ApproveListItem';
 import { IBusinessApplicationState } from './IBusinessApplicationState';
-import { CurrentUser } from '@pnp/sp/src/siteusers';
-
+import { SPUser } from '@microsoft/sp-page-context';
 export default class BusinessApplication extends React.Component<IBusinessApplicationProps, {}> {
 
    state = {
@@ -19,7 +18,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     visible1: false,
     Title: null,
    // typeList: null //分类list
-   approveDiv: '办' // 办、阅状态
+    approveDiv:"办" ,//办、阅状态
+    itemTitle:null,//添加标题
+    itemContent:null, //添加正文
+    itemType:null,//添加类型
   }
 
   /**
@@ -111,6 +113,24 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     super(props);
     this.getPageList(props);
     this.getApprove(props);
+    this.handleChangeTitle = this.handleChangeTitle.bind(this);
+    this.handleChangeContent = this.handleChangeContent.bind(this);
+    this.handleChangetype = this.handleChangetype.bind(this);
+  }
+
+//添加窗口标题
+  handleChangeTitle(event) {
+    this.setState({itemTitle: event.target.value});
+  }
+  //添加窗口正文
+  handleChangeContent(event)
+  {
+    this.setState({itemContent:event.target.value});
+  }
+  //添加窗口类型
+  handleChangetype(event)
+  {
+    this.setState({itemType:event.target.value});
   }
 
   // 显示添加窗体
@@ -121,10 +141,53 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    // this.getType();
   }
 
-  // 添加Item数据
-  public itemAdd() {   
-  } 
-  // 初始化分类
+ //
+
+
+
+
+  //添加Item数据
+  public itemAdd(){
+    const hide = message.loading(`正在保存文件`);
+    var createdate = new Date();
+    var approve=createdate.getFullYear().toString()+createdate.getMonth().toString();
+    approve+=createdate.getDay().toString()+createdate.getHours().toString()+createdate.getMinutes().toString()
+    approve+=createdate.getSeconds().toString()+createdate.getMilliseconds().toString();
+    setTimeout(hide, 500);
+    sp.web.currentUser.get().then(current_user => {
+      console.log(current_user);
+
+    var uid=current_user.Id;
+    var ulgon=current_user.LoginName;
+    console.log(uid);
+    sp.web.lists.getByTitle(this.props.ApprovealListName).items.add({
+         Title:this.state.itemTitle, //标题
+         Content:this.state.itemContent,//正文
+         TypeId:this.state.itemType,
+         createTime:createdate,
+         ApprovalState:"待审阅",
+         ApproveID:parseInt(approve),
+        // createUser:uid,
+        // createUser:{
+        //  results: [ 624, 45 ]
+        // }
+      
+    }).then(result => {
+      result.item.select('id').get().then(d => { 
+         message.success(`保存成功`); 
+         this.setState({
+          visible: false,
+        });
+      });
+    }).catch(e => {
+       message.error(`保存失败`);
+    });
+  });
+    
+  }
+ 
+ 
+  //初始化分类
  /*  public getType() {
     const options = [];
     sp.web.lists.getByTitle('分类').items.getAll().then(Items => {
@@ -139,10 +202,12 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     });
   } */
   // 初始化办、阅人员选择内容;aid 标签状态1办，2是阅
-public approveTypefn(aid, event) {
-  let i = aid;
-  if (i == '办'){
-      this.setState({approveDiv: '办'});
+public approveTypefn(aid,event) {
+  var i=aid;
+  if(i=="办"){
+  
+      this.setState({approveDiv:"办"});
+     
   }
   else if (i == '阅')
   {
@@ -322,28 +387,29 @@ private getPageList(key) {
             </Row> */}
             <Row gutter={16}>
             <Col span={24}>
-                <Form.Item label='类型'  >
-                <Radio.Group defaultValue='a' buttonStyle='solid'>
-                <Radio.Button value='a'>文档</Radio.Button>
-                <Radio.Button value='b'>设备维修</Radio.Button>
-                <Radio.Button value='c'>计算机耗材申请</Radio.Button>
-                <Radio.Button value='d'>其他</Radio.Button>
+                <Form.Item label="类型"  >
+                <Radio.Group defaultValue="文档" buttonStyle="solid" value={this.state.itemType} onChange={this.handleChangetype} >
+                <Radio.Button value="文档">文档</Radio.Button>
+                <Radio.Button value="设备维修">设备维修</Radio.Button>
+                <Radio.Button value="计算机耗材申请">计算机耗材申请</Radio.Button>
+                <Radio.Button value="其他">其他</Radio.Button>
                 </Radio.Group>
                 </Form.Item>
             </Col>
             </Row>
             <Row gutter={16}>
               <Col span={24}>
-                <Form.Item label='标题' >
-                  <Input  />
+                <Form.Item label="标题"  >
+                  
+                  <input value={this.state.itemTitle}  onChange={this.handleChangeTitle}  className={styles.inputCWe}/>
                 </Form.Item>
               </Col>
             </Row>
 
             <Row gutter={16}>
               <Col span={24}>
-                <Form.Item label='内容'>
-                  <Input.TextArea rows={4} placeholder='请输入内容' className={styles.textalign} />
+                <Form.Item label="内容">
+                  <Input.TextArea rows={4} value={this.state.itemContent} onChange={this.handleChangeContent}     placeholder="请输入内容" className={styles.textalign} />
                 </Form.Item>
               </Col>
             </Row>
@@ -371,6 +437,7 @@ private getPageList(key) {
                   </Menu>
                   <div>
                   {this.state.approveDiv}
+                 
                   </div>
                  </Form.Item>
                </Col>
