@@ -2,93 +2,53 @@ import * as React from 'react';
 import styles from './Alertwebpart.module.scss';
 import { IAlertwebpartProps } from './IAlertwebpartProps';
 import { escape } from '@microsoft/sp-lodash-subset';
-import { Select, Modal, Button, Input, Form } from 'antd';
+import { Select, Modal, Button, Input, Form,Table } from 'antd';
 import 'antd/dist/antd.css';
+import { sp } from '@pnp/sp';
 
 
 export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}> {
   state = {
-    loading: false,
-    visible: false,
-    // selectedOption: null,
-    // selectValue:null
-    ModalText: 'lalalala',
-
+    data: null,
   };
-  /* public getInitialState = ()=> {
-    return {selectValue :'jack'};
-    
-  }; */
-  public showModal = () => {
-    this.setState({
-      visible: true,
-    });
-  };
-
+  private columns = [
+    {
+      title: '标题',
+      dataIndex: 'Title',
+      key: 'Title',
+    },
+    {
+      title: '审阅人',
+      dataIndex: 'age',
+      key: 'age',
+    },
+  ];
   
-  public  handleOk = (e) => {
-    this.setState({
-      ModalText:'页面几秒后关闭',
-      loading: true });
-    /* let demo=this.refs.getFormVlaue;
-    demo.validateFields((err,values)=>{
-      if(!err){
-        console.log(values);
-      }
-    }) */
-    setTimeout(() => {
-      this.setState({ loading: false, visible: false });
-    }, 3000);
-  };
+  public querylist(){
+    sp.web.currentUser.get().then(items=>{
+      sp.web.lists.getByTitle('审批').items.filter(' ').get().then(item =>{
+        if(items.length > 0){
+          this.setState({
+            data:item,
+          })
+        }
+      })
+    })
+  }
 
-  public  handleCancel = () => {
-    this.setState({ visible: false });
-  };
-  guidang = () => {
-    this.setState({ visible: false });
-  };
-  handleChange (e) {
-    this.setState({selectValue:e.target.value});
-    // console.log('you')
-  };
+  constructor(props){
+    super(props);
+    this.querylist();
+  }
+
 
   public render(): React.ReactElement<IAlertwebpartProps> {
 
-    const { visible, loading,ModalText} = this.state;
+    const { data} = this.state;
 
     return (
       <div className={styles.alertwebpart} >
-        <Button type='primary' onClick={this.showModal} id='buttonck'>
-          对话框
-        </Button>
-        <div style={{ height: 50 }}>
-          单位<select id='select1' value='jack' onChange={this.handleChange} style={{ paddingLeft: 10 }}>
-            <option value='jack'>Jack</option>
-          </select>
-        </div>
-        <div id='showxinxi'></div>
-        <Modal
-          visible={visible}
-          title='我的发起'
-          centered
-          onOk={this.handleOk}
-          onCancel={this.handleCancel}
-          footer={[
-            <Button key='back' onClick={this.handleCancel}>
-              退回
-            </Button>,
-            <Button key='submit' type='primary' loading={loading} onClick={this.handleOk}>
-              确认
-            </Button>,
-            <Button key='back' onClick={this.guidang}>
-              归档
-            </Button>,
-          ]}
-        >
-          
-
-            
-        </Modal>
+        <Table columns={this.columns} dataSource={data} rowKey='ApproveID' size='small'/>
       </div >
     );
   }

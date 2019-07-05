@@ -2,22 +2,24 @@ import * as React from 'react';
 import styles from './BusinessApplication.module.scss';
 import { IBusinessApplicationProps } from './IBusinessApplicationProps';
 import 'antd/dist/antd.css';
-import { Tabs, Button, Table, Menu, Drawer, Form, Radio,Col, Row, Input, Select, Upload, DatePicker, Icon, Modal, Popover } from 'antd';
+import { Tabs, Button, Table, Menu, Drawer, Form, Radio, Col, Row, Input, Select, Upload, DatePicker, Icon, Modal, Popover } from 'antd';
 import { sp, Items } from '@pnp/sp';
 import * as moment from 'moment';
 import { ApproveListItem } from './ApproveListItem';
 import { IBusinessApplicationState } from './IBusinessApplicationState';
+import { CurrentUser } from '@pnp/sp/src/siteusers';
 
 export default class BusinessApplication extends React.Component<IBusinessApplicationProps, {}> {
 
-  state = {
+   state = {
     loading: false,
     data: null,
-    visible: false,//添加抽屉状态
+    adata:null,
+    visible: false, // 添加抽屉状态
     visible1: false,
     Title: null,
    // typeList: null //分类list
-   approveDiv:"办" //办、阅状态
+   approveDiv: '办' // 办、阅状态
   }
 
   /**
@@ -25,11 +27,11 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    */
   private onClose = () => {
     this.setState({
-      visible: false,
+      visible: false
     });
-  };
+  }
   /**
-   * 显示弹出层(当前数据id) 
+   * 显示弹出层(当前数据id)
    * 根据id查询一条数据
    */
   private showModal = (itemId) => {
@@ -37,9 +39,9 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     this.getPage(itemId);
     this.setState({
 
-      visible1: true,
+      visible1: true
     });
-  };
+  }
   /**
    * 处理按钮
    */
@@ -51,29 +53,27 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     setTimeout(() => {
       this.setState({ loading: false, visible1: false });
     }, 3000);
-  };
+  }
   /**
    * 退回按钮
    */
   public handleCancel = () => {
     this.setState({ visible1: false });
-  };
+  }
   /**
    * 归档按钮
    */
   public File = () => {
     this.setState({ visible1: false });
-  };
+  }
   /**
    * 传阅按钮
    */
   public Circulate = () => {
     this.setState({ visible1: false });
-  };
+  }
 
-  colhigt = styles.colheight;
-
-  columns = [
+  private columns = [
     {
       title: '标题',
       dataIndex: 'Title',
@@ -81,13 +81,13 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       width: '50%',
       // sortOrder: 'ascend',
       // sortDirections: ['descend'],
-      render: (text,row) =><Popover placement="topLeft" content={
+      render: (text, row) => <Popover placement='right' content={
         <div>
           <p>标题：{text}</p>
           <p>申请人：{row.createUserName}</p>
           <p>申请时间：{moment(row.createTime).format('YYYY-MM-DD HH:MM')}</p>
         </div>
-      }> <a onClick={this.showModal.bind(this, '65')} id='buttonck' className={styles.titlestyle}>{text}</a></Popover>,
+      }> <a onClick={this.showModal.bind(this, '65')} id='buttonck' className={styles.titlestyle}>{text}</a></Popover>
     },
 
     // {
@@ -103,33 +103,29 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       dataIndex: 'createTime',
       key: 'createTime',
       sortDirections: ['ascend'],
-      render: text => <a className={styles.titlestyle}>{moment(text).format('YYYY-MM-DD')}</a> // TODO：日期格式化
+      render: text => <span className={styles.titlestyle}>{moment(text).format('YYYY-MM-DD')}</span> // TODO：日期格式化
     }
   ];
 
   constructor(props) {
     super(props);
     this.getPageList(props);
+    this.getApprove(props);
   }
 
-  //显示添加窗体
-  public createItem(){
+  // 显示添加窗体
+  public createItem() {
     this.setState({
       visible: true
     });
    // this.getType();
   }
 
-  //添加Item数据
-  public itemAdd(){
-   
-    
-  }
- 
-
-  //初始化分类
+  // 添加Item数据
+  public itemAdd() {   
+  } 
+  // 初始化分类
  /*  public getType() {
-
     const options = [];
     sp.web.lists.getByTitle('分类').items.getAll().then(Items => {
       if (Items.length > 0) {
@@ -143,48 +139,50 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     });
   } */
   // 初始化办、阅人员选择内容;aid 标签状态1办，2是阅
-public approveTypefn(aid,event) {
-  var i=aid;
-  if(i=="办"){
-      this.setState({approveDiv:"办"});
+public approveTypefn(aid, event) {
+  let i = aid;
+  if (i == '办'){
+      this.setState({approveDiv: '办'});
   }
-  else if(i=="阅")
+  else if (i == '阅')
   {
-    this.setState({approveDiv:"阅"});
+    this.setState({approveDiv: '阅'});
   }
 }
+/** 
+ * 业务申请待办，已办，我的发起数据查询排序
+ * 传入菜单项的key值
+ * */
 private getPageList(key) {
-    let Approval=null;
+    let Approval = null;
     sp.web.currentUser.get().then(current_user => {
-    console.log(key.key)
-    if(key.key==1){
-      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime',false).get();
+    if (key.key == 1) {
+      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime', false).get();
     }
-    else if(key.key==2){
-      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUsersId eq ' + current_user.Id).orderBy('createTime',false).get();
-      console.log(Approval);
+    else if (key.key == 2) {
+      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUsersId eq ' + current_user.Id).orderBy('createTime', false).get();
     }
-    else if(key.key==3){
-      Approval = sp.web.lists.getByTitle('审批').items.filter('createUserId eq ' + current_user.Id).orderBy('createTime',false).get();
+    else if (key.key == 3) {
+      Approval = sp.web.lists.getByTitle('审批').items.filter('createUserId eq ' + current_user.Id).orderBy('createTime', false).get();
     }
-    else{
-      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime',false).get();
+    else {
+      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime', false).get();
     }
       Approval.then(items => {
-        if(items.length > 0){
+        if (items.length > 0) {
           items.forEach(item => {
             sp.web.getUserById(item.createUserId).get().then(user => {
               item.createUserName = user.Title;
               this.setState({
-                data: items,
+                data: items
               });
             });
           });
         }
-        else if(items.length == 0){
+        else if (items.length == 0) {
           this.setState({
             data: null
-          })
+          });
         }
       });
     });
@@ -194,7 +192,7 @@ private getPageList(key) {
   * 返回弹出层需要的数据
   */
   public getPage(itemId) {
-    var options = [];
+    let options = [];
     sp.web.lists.getByTitle('审批').items.filter('ApproveID eq ' + itemId).getAll().then(items => {
       // console.log(items.length);
       // console.log(items[0]['ID']);
@@ -204,25 +202,55 @@ private getPageList(key) {
         // console.log(options);
         this.setState({
           Title: options
-        })
+        });
       }
     });
   }
+
   /**
-  * 已办查询
-  */
-  /**
-  * 我的发起查询
-  */
+   * 审阅信息查询
+   * filter=%27ReadUsersId%20ne%20%27%20+%20currentUser.Id%20+%20%27%20and%20ApprovalUserId%20eq%20%27%20+%20currentUser.Id&$orderby=createTime%20desc
+   */
+  private getApprove(key){
+    let ccuser = null;
+    sp.web.currentUser.get().then(currentUser=>{
+      if(key.key == 1){
+        ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} ne ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime',false).get();
+      }
+      else if(key.key == 2){
+        ccuser = sp.web.lists.getByTitle('审批').items.filter('ReadUsersId eq ' + currentUser.Id).orderBy('createTime',false).get();
+      }
+      else{
+        ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} ne ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime',false).get();
+      }
+      ccuser.then(Items=>{
+        if(Items.length > 0){
+          Items.forEach(item => {
+            sp.web.getUserById(item.createUserId).get().then(user => {
+              item.createUserName = user.Title;
+              this.setState({
+                adata: Items
+              });
+            });
+          });
+        }
+        else{
+          this.setState({
+            adata: null
+          });
+        }
+      })
+    });
+  }
   /**
   * 页面渲染
   */
   public render(): React.ReactElement<IBusinessApplicationProps> {
-    const { visible1, visible, loading, data, Title } = this.state;
-   console.log(data);
+    const { visible1, visible, loading, data, Title, adata } = this.state;
     return (
 
       <div  className={styles.businessApplication}>
+        <div className={styles.tablewid}>
         <Menu mode='horizontal' defaultSelectedKeys={['1']} >
           <Menu.Item key='1' onClick={this.getPageList.bind(this)}>待办</Menu.Item>
           <Menu.Item key='2' onClick={this.getPageList.bind(this)}>已办</Menu.Item>
@@ -230,7 +258,7 @@ private getPageList(key) {
           <Button onClick={this.createItem.bind(this)} className={styles.applyb}>申请</Button>
         </Menu>
         <div>
-          <Table columns={this.columns} rowClassName={()=>styles.colheight} rowKey='ApproveID' dataSource={data} size='small' pagination={{pageSize:5}} />
+          <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={data} size='small' pagination={{pageSize: 5}} />
         </div>
 
         <Modal
@@ -267,15 +295,14 @@ private getPageList(key) {
             </Button>
         </Modal>
 
-
         <Drawer
-          title="提交业务申请"
+          title='提交业务申请'
           width={580}
           style={{ marginBottom: 0 }}
           onClose={this.onClose}
           visible={this.state.visible}
         >
-          <Form layout="vertical" >
+          <Form layout='vertical' >
             {/* <Row gutter={16}>
               <Col span={12}>
                 <Form.Item label="单位">
@@ -295,19 +322,19 @@ private getPageList(key) {
             </Row> */}
             <Row gutter={16}>
             <Col span={24}>
-                <Form.Item label="类型"  >
-                <Radio.Group defaultValue="a" buttonStyle="solid">
-                <Radio.Button value="a">文档</Radio.Button>
-                <Radio.Button value="b">设备维修</Radio.Button>
-                <Radio.Button value="c">计算机耗材申请</Radio.Button>
-                <Radio.Button value="d">其他</Radio.Button>
+                <Form.Item label='类型'  >
+                <Radio.Group defaultValue='a' buttonStyle='solid'>
+                <Radio.Button value='a'>文档</Radio.Button>
+                <Radio.Button value='b'>设备维修</Radio.Button>
+                <Radio.Button value='c'>计算机耗材申请</Radio.Button>
+                <Radio.Button value='d'>其他</Radio.Button>
                 </Radio.Group>
                 </Form.Item>
             </Col>
             </Row>
             <Row gutter={16}>
               <Col span={24}>
-                <Form.Item label="标题" >
+                <Form.Item label='标题' >
                   <Input  />
                 </Form.Item>
               </Col>
@@ -315,14 +342,14 @@ private getPageList(key) {
 
             <Row gutter={16}>
               <Col span={24}>
-                <Form.Item label="内容">
-                  <Input.TextArea rows={4} placeholder="请输入内容" className={styles.textalign} />
+                <Form.Item label='内容'>
+                  <Input.TextArea rows={4} placeholder='请输入内容' className={styles.textalign} />
                 </Form.Item>
               </Col>
             </Row>
             <Row gutter={8}>
               <Col span={24}>
-                <Form.Item label="附件">
+                <Form.Item label='附件'>
                   <Upload.Dragger {...this.props}>
                    {/*  <p className="ant-upload-drag-icon">
                      
@@ -339,8 +366,8 @@ private getPageList(key) {
                <Col span={24}>
                  <Form.Item label="审阅" >
                  <Menu mode='horizontal'  className={styles.menu} >
-                  <Menu.Item key='1' onClick={this.approveTypefn.bind(this,'办')}>办</Menu.Item>
-                  <Menu.Item key='2' onClick={this.approveTypefn.bind(this,'阅')}>阅</Menu.Item>
+                  <Menu.Item key='1' onClick={this.approveTypefn.bind(this, '办')}>办</Menu.Item>
+                  <Menu.Item key='2' onClick={this.approveTypefn.bind(this, '阅')}>阅</Menu.Item>
                   </Menu>
                   <div>
                   {this.state.approveDiv}
@@ -360,7 +387,7 @@ private getPageList(key) {
               padding: '5px 16px',
               background: '#fff',
               textAlign: 'right',
-              marginBottom: 0,
+              marginBottom: 0
             }}
           >
             <Button onClick={this.onClose} style={{ marginRight: 8 }}>
@@ -372,9 +399,15 @@ private getPageList(key) {
           </div>
         </Drawer>
 
-
+        </div>
+        <div className={styles.tablewid}>
+        <Menu mode='horizontal' defaultSelectedKeys={['1']} >
+        <Menu.Item key='1' onClick={this.getApprove.bind(this)}>待审阅</Menu.Item>
+        <Menu.Item key='2' onClick={this.getApprove.bind(this)}>已审阅</Menu.Item>
+        </Menu>
+        <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={adata} size='small' pagination={{pageSize: 5}} />
+        </div>
       </div>
     );
   }
 }
-

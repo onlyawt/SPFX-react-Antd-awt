@@ -1,7 +1,7 @@
 @import '~@microsoft/sp-office-ui-fabric-core/dist/sass/SPFabricCore.scss';
 
 .businessApplication {
-  height: 300px;
+  height: 270px;
 
   .container {
     max-width: 700px;
@@ -147,5 +147,11 @@
     td{
       padding: 0px !important;
     }
+  }
+  .tablewid{
+    width: 48%;
+    padding-left: 1%;
+    padding-right: 1%;
+    float: left;
   }
 }
