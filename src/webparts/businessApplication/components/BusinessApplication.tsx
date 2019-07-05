@@ -2,8 +2,8 @@ import * as React from 'react';
 import styles from './BusinessApplication.module.scss';
 import { IBusinessApplicationProps } from './IBusinessApplicationProps';
 import 'antd/dist/antd.css';
-import { Tabs, Button, Table, Menu, Drawer, Form, Col, Row, Input, Select, Upload, DatePicker, Icon, Modal } from 'antd';
-import { sp, Items } from '@pnp/sp';
+import { Steps, Button, Table, Menu, Drawer, Form, Col, Row, Input, Select, Upload, Popover, Icon, Modal,Divider } from 'antd';
+import { sp, Items, FieldLink } from '@pnp/sp';
 import * as moment from 'moment';
 import { ApproveListItem } from './ApproveListItem';
 import { IBusinessApplicationState } from './IBusinessApplicationState';
@@ -13,10 +13,15 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   state = {
     loading: false,
     data: null,
-    visible: false,//添加抽屉状态
+    visible: false,// 添加抽屉状态
     visible1: false,
     Title: null,
-    typeList: null //分类list
+    typeList: null, // 分类list
+    selindex: 1,
+    timeList:null,// 初始时间轴
+    lineContent:null,//初始化时间轴内容
+
+
   }
 
   columns = [
@@ -24,20 +29,22 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       title: '标题',
       dataIndex: 'Title',
       key: 'Title',
-      render: (text, row) => <a onClick={this.showModal.bind(this, row.ApproveID)} id='buttonck'>{text}</a>,
+      render: (text,row,index) => <a onClick={this.showModal.bind(this,row,index)} id='buttonck'>{text}</a>,
     },
 
     {
       title: '申请人',
       dataIndex: 'createUserName',
-      key: 'createUserName'
+      key: 'createUserName',
+      
     },
 
     {
       title: '申请时间',
       dataIndex: 'createTime',
       key: 'createTime',
-      render: text => <span>{moment(text).format('YYYY-MM-DD  hh:mm')}</span> // TODO：日期格式化
+      render: text => <span>{moment(text).format('YYYY-MM-DD  hh:mm')}</span>,// TODO：日期格式化
+      
     }
   ];
   /**
@@ -52,11 +59,11 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 显示弹出层(当前数据id) 
    * 根据id查询一条数据
    */
-  private showModal = (itemId) => {
-
-    this.getPage(itemId);
+  private showModal = (row,index) => {
+    console.log(row.Id);
+    this.timeLine(row.Id);
     this.setState({
-
+      selindex: index,
       visible1: true,
     });
   };
@@ -124,6 +131,37 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       }
     });
   }
+  //初始时间轴
+  public timeLine(ID) {
+    var itemId=ID;//打断数据传输
+    console.log(itemId);
+    const Line = [];
+    const lineC = [];
+
+    sp.web.lists.getByTitle('审批意见记录').items.filter('ItemId eq ' + itemId).orderBy('createTime', true).getAll().then(Items => {
+      if (Items.length > 0) {
+        
+        for (let index = 0; index < Items.length; index++) {    
+          if(Items[index]['Content']!=null)    {
+          Line.push(<Steps.Step title={'处理人：'+Items[index]['Title']+" —— "+'处理时间：'+moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm')}
+          description={'审批意见：'+Items[index]['Content']}/>);}
+          else{
+          Line.push(<Steps.Step title={'处理人：'+Items[index]['Title']+" —— "+'处理时间：'+moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm')}
+          description={'审批意见：'+'无审批意见'}/>);} 
+          lineC.push(Items[index]['Content']);
+
+          console.log(Items[index]);
+          console.log(Items[index].CreateUserStringId);
+          console.log(Items[index]['createUserId']);            
+        }
+        this.setState({
+          timeList: Line,
+          lineContent: lineC,
+ 
+        });  
+    };
+  });
+  }
   /**
    * 待办查询
    */
@@ -148,7 +186,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   * 根据id查询单条数据
   * 返回弹出层需要的数据
   */
-  public getPage(itemId) {
+  /* public getPage(itemId) {
     var options = [];
     sp.web.lists.getByTitle('审批').items.filter('ApproveID eq ' + itemId).getAll().then(items => {
       // console.log(items.length);
@@ -162,7 +200,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         })
       }
     });
-  }
+  } */
   /**
   * 已办查询
   */
@@ -207,8 +245,22 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   * 页面渲染
   */
   public render(): React.ReactElement<IBusinessApplicationProps> {
-    const { visible1, visible, loading, data, Title } = this.state;
-    console.log(data);
+    const { visible1, visible, loading, data, Title,lineContent} = this.state;
+    const customDot = (dot, { status, index }) => (
+      
+      <Popover
+        title="审批意见"
+        placement='top'
+        content={
+          <div><p>意见内容:{lineContent[index]?lineContent[index]:'无审批意见'}</p>
+               <p>step {index} status: {status} </p>
+          </div>
+        }
+      >
+        {dot}
+      </Popover>
+    );
+    //console.log(data);
     return (
 
       <div  >
@@ -222,25 +274,50 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           <Table columns={this.columns} rowKey='ApproveID' dataSource={data} size='small' />
         </div>
 
-        <Modal
-          width={800}
+        
+        <Modal   
+          width={800}    
           visible={visible1}
           title='待审阅'
           centered
           onCancel={this.handleCancel}
           footer={null}
         >
+          <Row>
           {/* <Table columns={this.columns} rowKey='ApproveID' dataSource={dataList} size='small' />   */}
 
           {/* <div>{dataList.ApproveID}</div> */}
-          <table>
+          <Col span={13} >
+          <Steps direction="vertical" style={{ marginTop: 10 }}  current={2} status='error' size='small' /* progressDot={customDot} */>
+            <Steps.Step title='申请人' description={data?data[this.state.selindex].createUserName:'没有数据！'} />
+            {this.state.timeList}
+            <Steps.Step title='已结束' description='已结束' />
+            
+          </Steps>
+          </Col>
+          <Col span={11} >         
+          <table >
             <tbody id='items'>
               <tr>
                 <td>标题:</td>
-                <td>{Title}</td>
+                <td>{data?data[this.state.selindex].Title:'没有数据！'}</td>
+              </tr>
+              <tr>
+                <td>内容:</td>
+                <td>{data?data[this.state.selindex].Content:'没有数据！'}</td>
+              </tr>
+              <tr>
+                <td>申请人:</td>
+                <td>{data?data[this.state.selindex].createUserName:'没有数据！'}</td>
+              </tr>
+              <tr>
+                <td>申请时间:</td>
+                <td>{data?moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  hh:mm'):'没有数据！'}</td>
               </tr>
             </tbody>
           </table>
+          </Col>
+          </Row>
           <Button key='Circulate' onClick={this.Circulate}>
             传阅
             </Button>
@@ -253,28 +330,28 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             </Button>
           <Button key='File' onClick={this.File}>
             归档
-            </Button>
+            </Button>       
         </Modal>
 
 
         <Drawer
-          title="提交业务申请"
+          title='提交业务申请'
           width={580}
           style={{ marginBottom: 0 }}
           onClose={this.onClose}
           visible={this.state.visible}
         >
-          <Form layout="vertical" >
+          <Form layout='vertical' >
             <Row gutter={16}>
               <Col span={12}>
-                <Form.Item label="单位">
+                <Form.Item label='单位'>
                   <label ></label>
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item label="类型">
+                <Form.Item label='类型'>
 
-                  <Select placeholder="请选择类型"
+                  <Select placeholder='请选择类型'
                   >
                     {this.state.typeList}
                   </Select>
@@ -284,7 +361,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             </Row>
             <Row gutter={16}>
               <Col span={24}>
-                <Form.Item label="标题"  >
+                <Form.Item label='标题'  >
                   <Input />
                 </Form.Item>
               </Col>
@@ -292,20 +369,20 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
             <Row gutter={16}>
               <Col span={24}>
-                <Form.Item label="内容">
-                  <Input.TextArea rows={4} placeholder="请输入内容" className={styles.textalign} />
+                <Form.Item label='内容'>
+                  <Input.TextArea rows={4} placeholder='请输入内容' className={styles.textalign} />
                 </Form.Item>
               </Col>
             </Row>
             <Row gutter={8}>
               <Col span={24}>
-                <Form.Item label="附件">
+                <Form.Item label='附件'>
                   <Upload.Dragger {...this.props}>
-                    <p className="ant-upload-drag-icon">
-                      <Icon type="inbox" />
+                    <p className='ant-upload-drag-icon'>
+                      <Icon type='inbox' />
                     </p>
-                    <p className="ant-upload-text">点击或拖拽至此处</p>
-                    <p className="ant-upload-hint">
+                    <p className='ant-upload-text'>点击或拖拽至此处</p>
+                    <p className='ant-upload-hint'>
                       Support for a single or bulk upload. Strictly prohibit from uploading company data or other
                       band files
                     </p>
@@ -332,7 +409,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             <Button onClick={this.onClose} style={{ marginRight: 8 }}>
               取消
             </Button>
-            <Button onClick={this.onClose} type="primary">
+            <Button onClick={this.onClose} type='primary'>
               提交
             </Button>
           </div>
