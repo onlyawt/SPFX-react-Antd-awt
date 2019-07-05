@@ -56,7 +56,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       dataIndex: 'createTime',
       key: 'createTime',
       sortDirections: ['ascend'],
-      render: text => <span className={styles.titlestyle}>{moment(text).format('YYYY-MM-DD  hh:mm')}</span>,// TODO：日期格式化
+      render: text => <span className={styles.titlestyle}>{moment(text).format('YYYY-MM-DD')}</span>,// TODO：日期格式化
     }
   ];
 
