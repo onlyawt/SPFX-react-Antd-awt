@@ -2,7 +2,7 @@ import * as React from 'react';
 import styles from './BusinessApplication.module.scss';
 import { IBusinessApplicationProps } from './IBusinessApplicationProps';
 import 'antd/dist/antd.css';
-import { Tabs, Button, Table, Menu, Drawer,message, Form, Radio,Col, Row, Input, Select,Steps, Upload, DatePicker, Icon, Modal, Popover } from 'antd';
+import { Tabs, Button, Table, Menu, Drawer,message, Form, Radio,Col,Row, Input, Select,Steps, Upload, Divider, Icon, Modal, Popover } from 'antd';
 import { sp, Items } from '@pnp/sp';
 import * as moment from 'moment';
 import { ApproveListItem } from './ApproveListItem';
@@ -11,7 +11,7 @@ import { SPUser } from '@microsoft/sp-page-context';
 export default class BusinessApplication extends React.Component<IBusinessApplicationProps, {}> {
 
    state = {
-    loading: false,
+    loading: false,// 处理异步等待
     data: null,
     visible: false,// 添加抽屉状态
     visible1: false,
@@ -19,13 +19,16 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     typeList: null, // 分类list
     selindex: 0,
     timeList:null,// 初始时间轴
-    lineContent:null,//初始化时间轴内容
+    lineContent:null,// 初始化时间轴内容
     approveDiv:null,
     strusername:null,
     itemTitle:null,
     adata:null,
     itemContent:null, //添加正文
-    itemType:null,//添加类型
+    itemType:null,// 添加类型
+    processVisible:false,// 处理
+    modalText:null,// 模态框内容
+    CirculateVisible:false,// 传阅
   }
 
   columns = [
@@ -62,7 +65,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
   
   /**
-   * 退回按钮
+   * 添加页面
    */
   private onClose = () => {
     this.setState({
@@ -82,34 +85,82 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     });
   }
   /**
+   * 处理确定按钮
+   */
+  public processOk = () => {
+    this.setState({
+      loading:true
+    });
+    setTimeout(() => {
+      this.setState({
+        loading:false,
+        processVisible: false,
+        visible1: false,
+      });
+    }, 2000);
+  }
+  /**
+   * 处理取消按钮
+   */
+
+  public processCancel = () => {
+    this.setState({ processVisible: false });
+  }
+  /**
+   * 处理确定按钮
+   */
+  public CirculateOk = () => {
+    this.setState({
+ 
+        CirculateVisible: false,
+      });
+  }
+  /**
+   * 处理取消按钮
+   */
+
+  public CirculateCancel = () => {
+    this.setState({ CirculateVisible: false });
+  }
+  /**
+   * 关闭
+   */
+  public pageCancel = () => {
+    this.setState({ 
+      visible1: false});
+  }
+  /**
    * 处理按钮
    */
   public handleOk = (e) => {
     this.setState({
-      ModalText: '页面几秒后关闭',
-      loading: true
+      modalText:<div>处理</div>,
+      processVisible:true,
     });
-    setTimeout(() => {
-      this.setState({ loading: false, visible1: false });
-    }, 3000);
   }
   /**
    * 退回按钮
    */
   public handleCancel = () => {
-    this.setState({ visible1: false });
+    this.setState({ 
+      modalText:<div>是否确认退回</div>,
+      processVisible: true });
   }
   /**
    * 归档按钮
    */
   public File = () => {
-    this.setState({ visible1: false });
+    this.setState({ 
+      modalText:<div>是否确认归档'</div>,
+      processVisible: true });
   }
   /**
    * 传阅按钮
    */
   public Circulate = () => {
-    this.setState({ visible1: false });
+    this.setState({ 
+      modalText:<div>是否确认传阅</div>,
+      CirculateVisible: true });
   };
 
   constructor(props) {
@@ -316,7 +367,7 @@ private getPageList(key) {
     });
   }
    /**
-  * 页面渲染
+  *模态框 页面渲染
   */
  public async timeLine(ID) {
   var id=ID;
@@ -378,59 +429,100 @@ private getPageList(key) {
           visible={visible1}
           title='待审阅'
           centered
-          onCancel={this.handleCancel}
+          onCancel={this.pageCancel}
           footer={null}
         >
-          <Row>
+          <Row gutter={24}>
           {/* <Table columns={this.columns} rowKey='ApproveID' dataSource={dataList} size='small' />   */}
 
           {/* <div>{dataList.ApproveID}</div> */}
-          <Col span={13} >
-          <Steps direction="vertical" style={{ marginTop: 10 }}  current={2} status='finish' size='small' /* progressDot={customDot} */>
-            <Steps.Step title='申请人' description={data?data[this.state.selindex].createUserName:'没有数据！'} />
+          
+          <Col span={14} >
+          <span style={{fontSize:'20px'}}>审批信息</span>
+          <Button style={{float:'right'}} key='Circulate' type='primary' onClick={this.Circulate}>
+            传阅
+          </Button>
+          <Divider></Divider>      
+          <table style={{marginBottom:'20px'}}>
+            <tbody className={styles.itemsStyles} >
+              <tr style={{lineHeight:'40px'}}>
+                <td style={{width:80}}>标题:</td>
+                <td>{data?data[this.state.selindex].Title:'没有数据！'}</td>
+              </tr>
+              <tr >
+                <td>内容:</td>
+                <td>{data?data[this.state.selindex].Content:'没有数据！'}</td>
+              </tr>
+              <tr style={{lineHeight:'40px'}}>
+                <td>申请人:</td>
+                <td>{data?this.optimizingData(data[this.state.selindex].createUserName):'没有数据！'}</td>
+              </tr>
+              <tr style={{lineHeight:'40px'}}>
+                <td>申请时间:</td>
+                <td>{data?moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  hh:mm'):'没有数据！'}</td>
+              </tr>
+              <tr >
+                <td>附件</td>
+                <td></td>
+              </tr>
+            </tbody>
+          </table>
+          
+          <Button style={{marginLeft:'80px'}} key='submit' type='primary' onClick={this.handleOk}>
+            处理
+          </Button>
+          <Button style={{marginLeft:'15px'}} key='back' type='danger' onClick={this.handleCancel}>
+            退回
+          </Button>
+          <Button style={{marginLeft:'15px'}} key='File' onClick={this.File}>
+            归档
+          </Button>  
+          
+          </Col>
+          <Col span={10}>
+          <Steps direction="vertical" style={{ marginTop: '10px'}}  current={2} status='finish' size='small' /* progressDot={customDot} */>
+            <Steps.Step title={'申请人：'+(data?data[this.state.selindex].createUserName:'没有数据！')+'['+(data?moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  hh:mm'):'没有数据！')+']'}/>
             {this.state.timeList}
             <Steps.Step title='已结束' description='已结束' />
             
           </Steps>
-          </Col>
-          <Col span={11} >         
-          <table >
-            <tbody id='items'>
-              <tr>
-                <td>标题:</td>
-                <td>{data?data[this.state.selindex].Title:'没有数据！'}</td>
-              </tr>
-              <tr>
-                <td>内容:</td>
-                <td>{data?data[this.state.selindex].Content:'没有数据！'}</td>
-              </tr>
-              <tr>
-                <td>申请人:</td>
-                <td>{data?this.optimizingData(data[this.state.selindex].createUserName):'没有数据！'}</td>
-              </tr>
-              <tr>
-                <td>申请时间:</td>
-                <td>{data?moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  hh:mm'):'没有数据！'}</td>
-              </tr>
-            </tbody>
-          </table>
-          </Col>
+          </Col> 
+          {/* 按钮模态框 */}
+          <Modal
+          title="传阅"
+          visible={this.state.processVisible}
+          centered
+          footer={null}
+          onCancel={this.processCancel}
+          >
+          {this.state.modalText}
+          <Button style={{marginLeft:'150px'}} key='submit' type='primary' loading={loading} onClick={this.processOk}>
+            确认
+          </Button>
+          <Button style={{marginLeft:'15px'}} key='back' type='danger' onClick={this.processCancel}>
+            取消
+          </Button>
+          </Modal>
+          {/* 传阅模态框 */}
+          <Modal
+          title="传阅"
+          visible={this.state.CirculateVisible}
+          centered
+          footer={null}
+          onCancel={this.CirculateCancel}
+          >
+          {this.state.modalText}
+          <Button style={{marginLeft:'150px'}} key='submit' type='primary' onClick={this.CirculateOk}>
+            确认
+          </Button>
+          <Button style={{marginLeft:'15px'}} key='back' type='danger' onClick={this.CirculateCancel}>
+            取消
+          </Button>
+          </Modal>
+
           </Row>
-          <Button key='Circulate' onClick={this.Circulate}>
-            传阅
-            </Button>
-
-          <Button key='submit' type='primary' loading={loading} onClick={this.handleOk}>
-            处理
-            </Button>
-          <Button key='back' type='danger' onClick={this.handleCancel}>
-            退回
-            </Button>
-          <Button key='File' onClick={this.File}>
-            归档
-            </Button>       
         </Modal>
-
+        
         <Drawer
           title='提交业务申请'
           width={580}
