@@ -33,6 +33,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     CirculateVisible:false,// 传阅
     people_data: [],
     people_fetching: false,
+    applicant:null,// 申请人姓名
   }
 
   columns = [
@@ -43,21 +44,16 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       width: '75%',
       // sortOrder: 'ascend',
       // sortDirections: ['descend'],
-      render: (text, row, index) => <Popover placement='right' content={
-        <div>
-          <p>标题：{text}</p>
-          <p>申请人：{row.createUserName}</p>
-          <p>申请时间：{moment(row.createTime).format('YYYY-MM-DD hh:mm')}</p>
-        </div>
-      }> <a onClick={this.showModal.bind(this, row, index)} id='buttonck' className={styles.titlestyle}>{text}</a></Popover>,
+      render: (text, row, index) => 
+      <Popover  placement='right' content={<div>
+        <p>标题：{row.Title}</p>
+        <p>申请人：{this.state.applicant}</p>
+        <p>申请时间：{moment(row.createTime).format('YYYY-MM-DD hh:mm')}</p>
+        </div>} >
+         <a onClick={this.showModal.bind(this, row, index)} id='buttonck' className={styles.titlestyle} onMouseOver={this.approvlaContent.bind(this,row)}>
+           {text}</a>
+          </Popover>,
     },
-    /* {
-      title: '申请人',
-      dataIndex: 'createUserName',
-      key: 'createUserName',
-      
-    }, */
-
     {
       title: '申请时间',
       dataIndex: 'createTime',
@@ -67,7 +63,14 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     }
   ];
 
-
+private async approvlaContent(ele){
+  let userName=null;
+  let neme = await sp.web.getUserById(ele.createUserId).get()
+  userName = neme.Title;
+  this.setState(
+    {applicant:userName}
+  );
+  }
   /**
    * 添加页面
    */
@@ -288,16 +291,16 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 业务申请待办，已办，我的发起数据查询排序
    * 传入菜单项的key值
    * */
-  private getPageList(key) {
+  private getPageList(element) {
     let Approval = null;
     sp.web.currentUser.get().then(current_user => {
-      if (key.key == 1) {
+      if (element.key == 1) {
         Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime', false).get();
       }
-      else if (key.key == 2) {
+      else if (element.key == 2) {
         Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUsersId eq ' + current_user.Id).orderBy('createTime', false).get();
       }
-      else if (key.key == 3) {
+      else if (element.key == 3) {
         Approval = sp.web.lists.getByTitle('审批').items.filter('createUserId eq ' + current_user.Id).orderBy('createTime', false).get();
       }
       else {
@@ -305,13 +308,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       }
       Approval.then(items => {
         if (items.length > 0) {
-          items.forEach(item => {
-            sp.web.getUserById(item.createUserId).get().then(user => {
-              item.createUserName = user.Title;
               this.setState({
                 data: items
-              });
-            });
           });
         }
         else if (items.length == 0) {
@@ -349,29 +347,24 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   }
   /**
    * 审阅信息查询
-   * 
+   * 'ReadUsersId eq ' + currentUser.Id
    */
-  private getApprove(key) {
+  private getApprove(element) {
     let ccuser = null;
     sp.web.currentUser.get().then(currentUser => {
-      if (key.key == 1) {
+      if (element.key == 1) {
         ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} ne ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime', false).get();
       }
-      else if (key.key == 2) {
-        ccuser = sp.web.lists.getByTitle('审批').items.filter('ReadUsersId eq ' + currentUser.Id).orderBy('createTime', false).get();
+      else if (element.key == 2) {
+        ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} eq ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}` ).orderBy('createTime', false).get();
       }
       else {
         ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} ne ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime', false).get();
       }
       ccuser.then(Items => {
         if (Items.length > 0) {
-          Items.forEach(item => {
-            sp.web.getUserById(item.createUserId).get().then(user => {
-              item.createUserName = user.Title;
               this.setState({
                 adata: Items
-              });
-            });
           });
         }
         else {
@@ -688,8 +681,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         </div>
         <div className={styles.tablewid}>
           <Menu mode='horizontal' defaultSelectedKeys={['1']} >
-            <Menu.Item key='1' onClick={this.getApprove.bind(this)}>待审阅</Menu.Item>
-            <Menu.Item key='2' onClick={this.getApprove.bind(this)}>已审阅</Menu.Item>
+            <Menu.Item key='1' onClick={this.getApprove.bind(this)}>待阅</Menu.Item>
+            <Menu.Item key='2' onClick={this.getApprove.bind(this)}>已阅</Menu.Item>
           </Menu>
           <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={adata} size='small' pagination={{ pageSize: 5 }} />
         </div>
