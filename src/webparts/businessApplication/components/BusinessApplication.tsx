@@ -2,12 +2,14 @@ import * as React from 'react';
 import styles from './BusinessApplication.module.scss';
 import { IBusinessApplicationProps } from './IBusinessApplicationProps';
 import 'antd/dist/antd.css';
-import { Tabs, Button, Table, Menu, Drawer,message, Form, Radio,Col,Row, Input, Select,Steps, Upload, Divider, Icon, Modal, Popover } from 'antd';
+import { Tabs, Button, Table, Menu, Drawer, message, Form, Radio, Col, Row, Input, Select, Steps, Upload, Divider, Icon, Modal, Popover, Spin } from 'antd';
 import { sp, Items } from '@pnp/sp';
 import * as moment from 'moment';
 import { ApproveListItem } from './ApproveListItem';
 import { IBusinessApplicationState } from './IBusinessApplicationState';
 import { SPUser } from '@microsoft/sp-page-context';
+import { escape, debounce } from '@microsoft/sp-lodash-subset';
+
 export default class BusinessApplication extends React.Component<IBusinessApplicationProps, {}> {
 
    state = {
@@ -29,6 +31,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     processVisible:false,// 处理
     modalText:null,// 模态框内容
     CirculateVisible:false,// 传阅
+    people_data: [],
+    people_fetching: false,
   }
 
   columns = [
@@ -36,16 +40,16 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       title: '标题',
       dataIndex: 'Title',
       key: 'Title',
-      width: '50%',
+      width: '75%',
       // sortOrder: 'ascend',
       // sortDirections: ['descend'],
-      render: (text,row,index) =><Popover placement='right' content={
+      render: (text, row, index) => <Popover placement='right' content={
         <div>
           <p>标题：{text}</p>
           <p>申请人：{row.createUserName}</p>
           <p>申请时间：{moment(row.createTime).format('YYYY-MM-DD hh:mm')}</p>
         </div>
-      }> <a onClick={this.showModal.bind(this,row,index)} id='buttonck' className={styles.titlestyle}>{text}</a></Popover>,
+      }> <a onClick={this.showModal.bind(this, row, index)} id='buttonck' className={styles.titlestyle}>{text}</a></Popover>,
     },
     /* {
       title: '申请人',
@@ -63,7 +67,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     }
   ];
 
-  
+
   /**
    * 添加页面
    */
@@ -76,7 +80,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 显示弹出层(当前数据id)
    * 根据id查询一条数据
    */
-  private showModal = (row,index) => {
+  private showModal = (row, index) => {
     console.log(row.Id);
     this.timeLine(row.ApproveID);
     this.setState({
@@ -159,7 +163,20 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    */
   public Circulate = () => {
     this.setState({ 
-      modalText:<div>是否确认传阅</div>,
+      modalText:<Select
+      mode="multiple"
+      labelInValue
+      placeholder="选择需要传阅的人"
+      notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
+      filterOption={false}
+      onSearch={this.fetchUser}
+      onChange={this.handleChange}
+      style={{ width: '100%' }}
+    >
+      {this.state.people_data.map(d => (
+        <Select.Option key={d.value}>{d.text}</Select.Option>
+      ))}
+    </Select>,
       CirculateVisible: true });
   };
 
@@ -170,21 +187,21 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     this.handleChangeTitle = this.handleChangeTitle.bind(this);
     this.handleChangeContent = this.handleChangeContent.bind(this);
     this.handleChangetype = this.handleChangetype.bind(this);
+    this.last_fetch_id = 0;
+    this.fetchUser = debounce(this.fetchUser, 500);
   }
 
-//添加窗口标题
+  //添加窗口标题
   handleChangeTitle(event) {
-    this.setState({itemTitle: event.target.value});
+    this.setState({ itemTitle: event.target.value });
   }
   //添加窗口正文
-  handleChangeContent(event)
-  {
-    this.setState({itemContent:event.target.value});
+  handleChangeContent(event) {
+    this.setState({ itemContent: event.target.value });
   }
   //添加窗口类型
-  handleChangetype(event)
-  {
-    this.setState({itemType:event.target.value});
+  handleChangetype(event) {
+    this.setState({ itemType: event.target.value });
   }
 
   // 显示添加窗体
@@ -192,101 +209,100 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     this.setState({
       visible: true
     });
-   // this.getType();
+    // this.getType();
   }
 
- //
+  //
 
 
 
 
   //添加Item数据
-  public itemAdd(){
+  public itemAdd() {
     const hide = message.loading(`正在保存文件`);
     var createdate = new Date();
-    var approve=createdate.getFullYear().toString()+createdate.getMonth().toString();
-    approve+=createdate.getDay().toString()+createdate.getHours().toString()+createdate.getMinutes().toString()
-    approve+=createdate.getSeconds().toString()+createdate.getMilliseconds().toString();
+    var approve = createdate.getFullYear().toString() + createdate.getMonth().toString();
+    approve += createdate.getDay().toString() + createdate.getHours().toString() + createdate.getMinutes().toString()
+    approve += createdate.getSeconds().toString() + createdate.getMilliseconds().toString();
     setTimeout(hide, 500);
     sp.web.currentUser.get().then(current_user => {
-      console.log(current_user);
+      //console.log(current_user);
 
-    var uid=current_user.Id;
-    var ulgon=current_user.LoginName;
-    console.log(uid);
-    sp.web.lists.getByTitle(this.props.ApprovealListName).items.add({
-         Title:this.state.itemTitle, //标题
-         Content:this.state.itemContent,//正文
-         TypeId:this.state.itemType,
-         createTime:createdate,
-         ApprovalState:"待审阅",
-         ApproveID:parseInt(approve),
-        // createUser:uid,
+      var uid = current_user.Id;
+      var ulgon = current_user.LoginName;
+      //console.log(uid);
+      sp.web.lists.getByTitle(this.props.ApprovealListName).items.add({
+        Title: this.state.itemTitle, //标题
+        Content: this.state.itemContent,//正文
+        TypeId: this.state.itemType,
+        createTime: createdate,
+        ApprovalState: "待审阅",
+        ApproveID: parseInt(approve),
+        createUserId: current_user.Id,
         // createUser:{
         //  results: [ 624, 45 ]
         // }
-      
-    }).then(result => {
-      result.item.select('id').get().then(d => { 
-         message.success(`保存成功`); 
-         this.setState({
-          visible: false,
+
+      }).then(result => {
+        result.item.select('id').get().then(d => {
+          message.success(`保存成功`);
+          this.setState({
+            visible: false,
+          });
         });
+      }).catch(e => {
+        message.error(`保存失败`);
       });
-    }).catch(e => {
-       message.error(`保存失败`);
     });
-  });
-    
+
   }
- 
- 
+
+
   //初始化分类
- /*  public getType() {
-    const options = [];
-    sp.web.lists.getByTitle('分类').items.getAll().then(Items => {
-      if (Items.length > 0) {
-        for (let index = 0; index < Items.length; index++) {
-          options.push(<Select.Option value={Items[index]['Title']}>{Items[index]['Title']}</Select.Option>);
-        }
-        this.setState({
-          typeList: options,
-        });
-      }
-    });
-  } */
+  /*  public getType() {
+     const options = [];
+     sp.web.lists.getByTitle('分类').items.getAll().then(Items => {
+       if (Items.length > 0) {
+         for (let index = 0; index < Items.length; index++) {
+           options.push(<Select.Option value={Items[index]['Title']}>{Items[index]['Title']}</Select.Option>);
+         }
+         this.setState({
+           typeList: options,
+         });
+       }
+     });
+   } */
   // 初始化办、阅人员选择内容;aid 标签状态1办，2是阅
-public approveTypefn(aid,event) {
-  var i=aid;
-  if(i=="办"){
-  
-      this.setState({approveDiv:"办"});
-     
+  public approveTypefn(aid, event) {
+    var i = aid;
+    if (i == "办") {
+
+      this.setState({ approveDiv: "办" });
+
+    }
+    else if (i == '阅') {
+      this.setState({ approveDiv: '阅' });
+    }
   }
-  else if (i == '阅')
-  {
-    this.setState({approveDiv: '阅'});
-  }
-}
-/** 
- * 业务申请待办，已办，我的发起数据查询排序
- * 传入菜单项的key值
- * */
-private getPageList(key) {
+  /** 
+   * 业务申请待办，已办，我的发起数据查询排序
+   * 传入菜单项的key值
+   * */
+  private getPageList(key) {
     let Approval = null;
     sp.web.currentUser.get().then(current_user => {
-    if (key.key == 1) {
-      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime', false).get();
-    }
-    else if (key.key == 2) {
-      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUsersId eq ' + current_user.Id).orderBy('createTime', false).get();
-    }
-    else if (key.key == 3) {
-      Approval = sp.web.lists.getByTitle('审批').items.filter('createUserId eq ' + current_user.Id).orderBy('createTime', false).get();
-    }
-    else {
-      Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime', false).get();
-    }
+      if (key.key == 1) {
+        Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime', false).get();
+      }
+      else if (key.key == 2) {
+        Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUsersId eq ' + current_user.Id).orderBy('createTime', false).get();
+      }
+      else if (key.key == 3) {
+        Approval = sp.web.lists.getByTitle('审批').items.filter('createUserId eq ' + current_user.Id).orderBy('createTime', false).get();
+      }
+      else {
+        Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime', false).get();
+      }
       Approval.then(items => {
         if (items.length > 0) {
           items.forEach(item => {
@@ -325,30 +341,30 @@ private getPageList(key) {
       }
     });
   }
-  private optimizingData(strDate):string{
+  private optimizingData(strDate): string {
     var msg = strDate.replace(/<\/?[^>]*>/g, ''); //去除HTML Tag
-            msg = msg.replace(/[|]*\n/, '') //去除行尾空格
-            msg = msg.replace(/&npsp;/ig, ''); //去掉npsp    
+    msg = msg.replace(/[|]*\n/, '') //去除行尾空格
+    msg = msg.replace(/&npsp;/ig, ''); //去掉npsp    
     return msg;
   }
   /**
    * 审阅信息查询
-   * filter=%27ReadUsersId%20ne%20%27%20+%20currentUser.Id%20+%20%27%20and%20ApprovalUserId%20eq%20%27%20+%20currentUser.Id&$orderby=createTime%20desc
+   * 
    */
-  private getApprove(key){
+  private getApprove(key) {
     let ccuser = null;
-    sp.web.currentUser.get().then(currentUser=>{
-      if(key.key == 1){
-        ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} ne ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime',false).get();
+    sp.web.currentUser.get().then(currentUser => {
+      if (key.key == 1) {
+        ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} ne ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime', false).get();
       }
-      else if(key.key == 2){
-        ccuser = sp.web.lists.getByTitle('审批').items.filter('ReadUsersId eq ' + currentUser.Id).orderBy('createTime',false).get();
+      else if (key.key == 2) {
+        ccuser = sp.web.lists.getByTitle('审批').items.filter('ReadUsersId eq ' + currentUser.Id).orderBy('createTime', false).get();
       }
-      else{
-        ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} ne ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime',false).get();
+      else {
+        ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} ne ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime', false).get();
       }
-      ccuser.then(Items=>{
-        if(Items.length > 0){
+      ccuser.then(Items => {
+        if (Items.length > 0) {
           Items.forEach(item => {
             sp.web.getUserById(item.createUserId).get().then(user => {
               item.createUserName = user.Title;
@@ -358,7 +374,7 @@ private getPageList(key) {
             });
           });
         }
-        else{
+        else {
           this.setState({
             adata: null
           });
@@ -371,29 +387,31 @@ private getPageList(key) {
   */
  public async timeLine(ID) {
   var id=ID;
-  console.log(id);
+  //console.log(id);
   var itemId=2022;//打断数据传输
-  console.log(itemId);
+  //console.log(itemId);
   const Line = [];
   const lineC = [];
 
   let Items = await sp.web.lists.getByTitle('审批意见记录').items.filter('ItemId eq ' + itemId).orderBy('CreateTime', true).get();
-  console.log(Items);
+  //console.log(Items);
     if (Items.length > 0) {
-      var strname:string='123';
+      var strname: string = '123';
       for (let index = 0; index < Items.length; index++) {
         let username = await sp.web.getUserById(Items[index]['CreateUserStringId']).get();
-          strname=username.Title;
-          if(Items[index]['Content']!=null)    {     
-            var msgT:string=Items[index]['Content'];
-            var msg=this.optimizingData(msgT);
-            Line.push(<Steps.Step title={'处理人：'+strname+'['+moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm')+']'}
-            description={'审批意见：'+msg}/>); }
-            else{
-            Line.push(<Steps.Step title={'处理人：'+strname+'['+moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm')+']'}
-            description={'审批意见：'+'无审批意见'}/>);} 
-            lineC.push(Items[index]['Content']);
-      
+        strname = username.Title;
+        if (Items[index]['Content'] != null) {
+          var msgT: string = Items[index]['Content'];
+          var msg = this.optimizingData(msgT);
+          Line.push(<Steps.Step title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm') + ']'}
+            description={'审批意见：' + msg} />);
+        }
+        else {
+          Line.push(<Steps.Step title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm') + ']'}
+            description={'审批意见：' + '无审批意见'} />);
+        }
+        lineC.push(Items[index]['Content']);
+
         // console.log(Items[index]);
         // console.log(Items[index].CreateUserStringId);
         // console.log(Items[index]['createUserId']);        
@@ -402,26 +420,58 @@ private getPageList(key) {
         timeList: Line,
         lineContent: lineC,
 
-  });
-}
-}
+      });
+    }
+  }
+
+  /**
+   * 人员选取组件
+   */
+  private last_fetch_id;
+
+  private fetchUser = value => {
+    console.log('fetching user', value);
+    this.last_fetch_id += 1;
+    const fetch_id = this.last_fetch_id;
+    this.setState({ people_data: [], people_fetching: true });
+    sp.web.siteUsers.filter("substringof('" + value + "',Title) or substringof('" + value + "',LoginName)").get().then(users => {
+      console.log('siteUsers', users);
+      if (fetch_id !== this.last_fetch_id) {
+        // for fetch callback order
+        return;
+      }
+      const people_data = users.map(user => ({
+        text: user.Title,
+        value: user.Id,
+      }));
+      this.setState({ people_data, people_fetching: false });
+      console.log(people_data);
+    });
+  };
+  /**
+   * 直接删除某一个item
+   * 删除成功则返回true
+   */
+  public handleChange() {
+    return false;
+  }
 
   public render(): React.ReactElement<IBusinessApplicationProps> {
-    const { visible1, visible, loading, data, Title,lineContent,approveDiv,adata} = this.state;
+    const { visible1, visible, loading, data, Title, lineContent, approveDiv, adata } = this.state;
     //console.log(data);
     return (
 
-      <div  className={styles.businessApplication}>
+      <div className={styles.businessApplication}>
         <div className={styles.tablewid}>
-        <Menu mode='horizontal' defaultSelectedKeys={['1']} >
-          <Menu.Item key='1' onClick={this.getPageList.bind(this)}>待办</Menu.Item>
-          <Menu.Item key='2' onClick={this.getPageList.bind(this)}>已办</Menu.Item>
-          <Menu.Item key='3' onClick={this.getPageList.bind(this)}>我的</Menu.Item>
-          <Button onClick={this.createItem.bind(this)} className={styles.applyb}>申请</Button>
-        </Menu>
-        <div>
-          <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={data} size='small' pagination={{pageSize: 5}} />
-        </div>
+          <Menu mode='horizontal' defaultSelectedKeys={['1']} >
+            <Menu.Item key='1' onClick={this.getPageList.bind(this)}>待办</Menu.Item>
+            <Menu.Item key='2' onClick={this.getPageList.bind(this)}>已办</Menu.Item>
+            <Menu.Item key='3' onClick={this.getPageList.bind(this)}>我的</Menu.Item>
+            <Button onClick={this.createItem.bind(this)} className={styles.applyb}>申请</Button>
+          </Menu>
+          <div>
+            <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={data} size='small' pagination={{ pageSize: 5 }} />
+          </div>
 
         {/* 显示数据和进度 */}
         <Modal   
@@ -452,14 +502,6 @@ private getPageList(key) {
               <tr >
                 <td>内容:</td>
                 <td>{data?data[this.state.selindex].Content:'没有数据！'}</td>
-              </tr>
-              <tr style={{lineHeight:'40px'}}>
-                <td>申请人:</td>
-                <td>{data?this.optimizingData(data[this.state.selindex].createUserName):'没有数据！'}</td>
-              </tr>
-              <tr style={{lineHeight:'40px'}}>
-                <td>申请时间:</td>
-                <td>{data?moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  hh:mm'):'没有数据！'}</td>
               </tr>
               <tr >
                 <td>附件</td>
@@ -548,94 +590,108 @@ private getPageList(key) {
                 </Form.Item>
               </Col>
             </Row> */}
-            <Row gutter={16}>
-            <Col span={24}>
-                <Form.Item label="类型"  >
-                <Radio.Group defaultValue="文档" buttonStyle="solid" value={this.state.itemType} onChange={this.handleChangetype} >
-                <Radio.Button value="文档">文档</Radio.Button>
-                <Radio.Button value="设备维修">设备维修</Radio.Button>
-                <Radio.Button value="计算机耗材申请">计算机耗材申请</Radio.Button>
-                <Radio.Button value="其他">其他</Radio.Button>
-                </Radio.Group>
-                </Form.Item>
-            </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={24}>
-                <Form.Item label="标题"  >
-                  
-                  <input value={this.state.itemTitle}  onChange={this.handleChangeTitle}  className={styles.inputCWe}/>
-                </Form.Item>
-              </Col>
-            </Row>
+              <Row gutter={16}>
+                <Col span={24}>
+                  <Form.Item label="类型"  >
+                    <Radio.Group defaultValue="文档" buttonStyle="solid" value={this.state.itemType} onChange={this.handleChangetype} >
+                      <Radio.Button value="文档">文档</Radio.Button>
+                      <Radio.Button value="设备维修">设备维修</Radio.Button>
+                      <Radio.Button value="计算机耗材申请">计算机耗材申请</Radio.Button>
+                      <Radio.Button value="其他">其他</Radio.Button>
+                    </Radio.Group>
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={16}>
+                <Col span={24}>
+                  <Form.Item label="标题"  >
 
-            <Row gutter={16}>
-              <Col span={24}>
-                <Form.Item label="内容">
-                  <Input.TextArea rows={4} value={this.state.itemContent} onChange={this.handleChangeContent}     placeholder="请输入内容" className={styles.textalign} />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={8}>
-              <Col span={24}>
-                <Form.Item label='附件'>
-                  <Upload.Dragger {...this.props}>
-                   {/*  <p className="ant-upload-drag-icon">
+                    <input value={this.state.itemTitle} onChange={this.handleChangeTitle} className={styles.inputCWe} />
+                  </Form.Item>
+                </Col>
+              </Row>
+
+              <Row gutter={16}>
+                <Col span={24}>
+                  <Form.Item label="内容">
+                    <Input.TextArea rows={4} value={this.state.itemContent} onChange={this.handleChangeContent} placeholder="请输入内容" className={styles.textalign} />
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={8}>
+                <Col span={24}>
+                  <Form.Item label='附件'>
+                    <Upload.Dragger {...this.props}>
+                      {/*  <p className="ant-upload-drag-icon">
                      
                     </p> */}
-                    <p className="ant-upload-text"> <Icon type="inbox" />点击或拖拽至此处</p>
-                    <p className="ant-upload-hint">
-                    支持单个或批量上传，严谨传公司保密文件。
+                      <p className="ant-upload-text"> <Icon type="inbox" />点击或拖拽至此处</p>
+                      <p className="ant-upload-hint">
+                        支持单个或批量上传，严谨传公司保密文件。
                     </p>
-                  </Upload.Dragger>
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={8}>
-               <Col span={24}>
-                 <Form.Item label="审阅" >
-                 <Menu mode='horizontal'  className={styles.menu} >
-                  <Menu.Item key='1' onClick={this.approveTypefn.bind(this, '办')}>办</Menu.Item>
-                  <Menu.Item key='2' onClick={this.approveTypefn.bind(this, '阅')}>阅</Menu.Item>
-                  </Menu>
-                  <div>
-                  {this.state.approveDiv}
-                 
-                  </div>
-                 </Form.Item>
-               </Col>
+                    </Upload.Dragger>
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Row gutter={8}>
+                <Col span={24}>
+                  <Form.Item label="审阅" >
+                    <Menu mode='horizontal' className={styles.menu} >
+                      <Menu.Item key='1' onClick={this.approveTypefn.bind(this, '办')}>办</Menu.Item>
+                      <Menu.Item key='2' onClick={this.approveTypefn.bind(this, '阅')}>阅</Menu.Item>
+                    </Menu>
+                    <div>
+                      {this.state.approveDiv}
+                      <Select
+                        mode="multiple"
+                        labelInValue
+                        placeholder="Select users"
+                        notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
+                        filterOption={false}
+                        onSearch={this.fetchUser}
+                        onChange={this.handleChange}
+                        style={{ width: '100%' }}
+                      >
+                        {this.state.people_data.map(d => (
+                          <Select.Option key={d.value}>{d.text}</Select.Option>
+                        ))}
+                      </Select>
 
-            </Row>
-          </Form>
-          <div
-            style={{
-              position: 'absolute',
-              left: 0,
-              bottom: 0,
-              width: '100%',
-              borderTop: '1px solid #e9e9e9',
-              padding: '5px 16px',
-              background: '#fff',
-              textAlign: 'right',
-              marginBottom: 0
-            }}
-          >
-            <Button onClick={this.onClose} style={{ marginRight: 8 }}>
-              取消
+                    </div>
+                  </Form.Item>
+                </Col>
+
+              </Row>
+            </Form>
+            <div
+              style={{
+                position: 'absolute',
+                left: 0,
+                bottom: 0,
+                width: '100%',
+                borderTop: '1px solid #e9e9e9',
+                padding: '5px 16px',
+                background: '#fff',
+                textAlign: 'right',
+                marginBottom: 0
+              }}
+            >
+              <Button onClick={this.onClose} style={{ marginRight: 8 }}>
+                取消
             </Button>
-            <Button onClick={this.itemAdd.bind(this)} type="primary">
-              提交
+              <Button onClick={this.itemAdd.bind(this)} type="primary">
+                提交
             </Button>
-          </div>
-        </Drawer>
+            </div>
+          </Drawer>
 
         </div>
         <div className={styles.tablewid}>
-        <Menu mode='horizontal' defaultSelectedKeys={['1']} >
-        <Menu.Item key='1' onClick={this.getApprove.bind(this)}>待审阅</Menu.Item>
-        <Menu.Item key='2' onClick={this.getApprove.bind(this)}>已审阅</Menu.Item>
-        </Menu>
-        <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={adata} size='small' pagination={{pageSize: 5}} />
+          <Menu mode='horizontal' defaultSelectedKeys={['1']} >
+            <Menu.Item key='1' onClick={this.getApprove.bind(this)}>待审阅</Menu.Item>
+            <Menu.Item key='2' onClick={this.getApprove.bind(this)}>已审阅</Menu.Item>
+          </Menu>
+          <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={adata} size='small' pagination={{ pageSize: 5 }} />
         </div>
       </div>
     );
