@@ -19,7 +19,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     visible1: false,
     Title: null,
     typeList: null, // 分类list
-    selindex: 0,
+    //selindex: 0,
     timeList:null,// 初始时间轴
     lineContent:null,// 初始化时间轴内容
     approveDiv:null,
@@ -33,6 +33,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     CirculateVisible:false,// 传阅
     people_data: [],
     people_fetching: false,
+    defaultFiletext:[],
+    iFNUM:0,
   }
 
   columns = [
@@ -81,12 +83,85 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 根据id查询一条数据
    */
   private showModal = (row, index) => {
-    console.log(row.Id);
+    console.log(this.state.defaultFiletext);
+    this.state.defaultFiletext.splice(0);
+    /* this.state.defaultFiletext.push({
+      uid:null,
+      name:'没有附件',
+      status:'error',
+      response:'Server Error 500',
+      url:null,
+    }); */
     this.timeLine(row.ApproveID);
+    this.getFile(row.Id);
     this.setState({
       selindex: index,
       visible1: true,
     });
+  }
+  /**
+   * 人员选取组件
+   */
+  private last_fetch_id;
+
+  private fetchUser = value => {
+    console.log('fetching user', value);
+    this.last_fetch_id += 1;
+    const fetch_id = this.last_fetch_id;
+    this.setState({ people_data: [], people_fetching: true });
+    sp.web.siteUsers.filter("substringof('" + value + "',Title) or substringof('" + value + "',LoginName)").get().then(users => {
+      console.log('siteUsers', users);
+      if (fetch_id !== this.last_fetch_id) {
+        // for fetch callback order
+        return;
+      }
+      const people_data = users.map(user => ({
+        text: user.Title,
+        value: user.Id,
+      }));
+      this.setState({ people_data, people_fetching: false });
+      console.log(people_data);
+    });
+  };
+  /**
+   * 获取附件
+   */
+  uploadOnChange = (info)=>{
+    
+    if (info.file.status !== 'uploading') {
+      console.log(info.file, info.fileList);
+    }
+    if (info.file.status === 'done') {
+      // this.getFile()
+       message.success(`${info.file.name} 上传成功`); 
+    } else if (info.file.status === 'error') {
+      message.error(`${info.file.name} file upload failed.`);
+    }
+  }
+  
+  private async getFile(fileId){
+    console.log(this.state.defaultFiletext);
+    
+    let item = sp.web.lists.getByTitle("审批").items.getById(fileId);
+
+    // get all the attachments
+    let fileName =await item.attachmentFiles.get()
+      
+      
+     // console.log(f);
+      for(let key in fileName){
+        
+        this.state.defaultFiletext.push({
+          uid:this.state.iFNUM,
+          name:fileName[key].FileName,
+          status:'done',
+          response:'Server Error 500',
+          url:fileName[key].ServerRelativeUrl,
+        });
+        console.log(this.state.defaultFiletext);
+        this.state.iFNUM--;
+      }
+    
   }
   /**
    * 处理确定按钮
@@ -138,7 +213,13 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    */
   public handleOk = (e) => {
     this.setState({
-      modalText:<div>处理</div>,
+      modalText:<div>
+        <Upload onChange={this.uploadOnChange}  defaultFileList={this.state.defaultFiletext}>
+    <Button>
+      <Icon type="upload" /> Upload
+    </Button>
+  </Upload>
+      </div>,
       processVisible:true,
     });
   }
@@ -288,7 +369,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 业务申请待办，已办，我的发起数据查询排序
    * 传入菜单项的key值
    * */
-  private getPageList(key) {
+  public getPageList(key) {
     let Approval = null;
     sp.web.currentUser.get().then(current_user => {
       if (key.key == 1) {
@@ -341,7 +422,11 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       }
     });
   }
-  private optimizingData(strDate): string {
+  /**
+   * 处理多行文本
+   * 
+   */
+  public optimizingData(strDate): string {
     var msg = strDate.replace(/<\/?[^>]*>/g, ''); //去除HTML Tag
     msg = msg.replace(/[|]*\n/, '') //去除行尾空格
     msg = msg.replace(/&npsp;/ig, ''); //去掉npsp    
@@ -351,7 +436,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 审阅信息查询
    * 
    */
-  private getApprove(key) {
+  public getApprove(key) {
     let ccuser = null;
     sp.web.currentUser.get().then(currentUser => {
       if (key.key == 1) {
@@ -383,17 +468,17 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     });
   }
    /**
-  *模态框 页面渲染
+  *模态框 步骤页面渲染
   */
  public async timeLine(ID) {
   var id=ID;
   //console.log(id);
-  var itemId=2022;//打断数据传输
-  //console.log(itemId);
+  var itemId=id;//打断数据传输
+  console.log(itemId);
   const Line = [];
   const lineC = [];
 
-  let Items = await sp.web.lists.getByTitle('审批意见记录').items.filter('ItemId eq ' + itemId).orderBy('CreateTime', true).get();
+  let Items = await sp.web.lists.getByTitle('审批意见记录').items.filter('ApproveID eq ' + itemId).orderBy('CreateTime', true).get();
   //console.log(Items);
     if (Items.length > 0) {
       var strname: string = '123';
@@ -416,38 +501,20 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         // console.log(Items[index].CreateUserStringId);
         // console.log(Items[index]['createUserId']);        
       }
+      
       this.setState({
         timeList: Line,
         lineContent: lineC,
 
       });
     }
+    else{
+      this.setState({
+        timeList:null
+      })
+      
+    }
   }
-
-  /**
-   * 人员选取组件
-   */
-  private last_fetch_id;
-
-  private fetchUser = value => {
-    console.log('fetching user', value);
-    this.last_fetch_id += 1;
-    const fetch_id = this.last_fetch_id;
-    this.setState({ people_data: [], people_fetching: true });
-    sp.web.siteUsers.filter("substringof('" + value + "',Title) or substringof('" + value + "',LoginName)").get().then(users => {
-      console.log('siteUsers', users);
-      if (fetch_id !== this.last_fetch_id) {
-        // for fetch callback order
-        return;
-      }
-      const people_data = users.map(user => ({
-        text: user.Title,
-        value: user.Id,
-      }));
-      this.setState({ people_data, people_fetching: false });
-      console.log(people_data);
-    });
-  };
   /**
    * 直接删除某一个item
    * 删除成功则返回true
@@ -497,15 +564,19 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             <tbody className={styles.itemsStyles} >
               <tr style={{lineHeight:'40px'}}>
                 <td style={{width:80}}>标题:</td>
-                <td>{data?data[this.state.selindex].Title:'没有数据！'}</td>
+                <td>{data?data[0].Title:'没有数据！'}</td>
               </tr>
               <tr >
                 <td>内容:</td>
-                <td>{data?data[this.state.selindex].Content:'没有数据！'}</td>
+                <td>{this.optimizingData(data?data[0].Content:'没有数据！')}</td>
               </tr>
-              <tr >
+              <tr style={{lineHeight:'40px'}}>
                 <td>附件</td>
-                <td></td>
+                <td>
+                <Upload onChange={this.uploadOnChange}  defaultFileList={this.state.defaultFiletext?this.state.defaultFiletext:null}>
+                
+                </Upload>
+                </td>
               </tr>
             </tbody>
           </table>
@@ -523,7 +594,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           </Col>
           <Col span={10}>
           <Steps direction="vertical" style={{ marginTop: '10px'}}  current={2} status='finish' size='small' /* progressDot={customDot} */>
-            <Steps.Step title={'申请人：'+(data?data[this.state.selindex].createUserName:'没有数据！')+'['+(data?moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  hh:mm'):'没有数据！')+']'}/>
+            <Steps.Step title={'申请人：'+(data?data[0].createUserName:'没有数据！')+'['+(data?moment(data[0].createTime).format('YYYY-MM-DD  hh:mm'):'没有数据！')+']'}/>
             {this.state.timeList}
             <Steps.Step title='已结束' description='已结束' />
             
@@ -531,7 +602,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           </Col> 
           {/* 按钮模态框 */}
           <Modal
-          title="传阅"
+          title="处理"
           visible={this.state.processVisible}
           centered
           footer={null}
