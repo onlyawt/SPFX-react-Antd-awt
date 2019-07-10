@@ -1,6 +1,8 @@
 @import '~@microsoft/sp-office-ui-fabric-core/dist/sass/SPFabricCore.scss';
 
 .alertwebpart {
+  height: 270px;
+
   .container {
     max-width: 700px;
     margin: 0px auto;
@@ -74,4 +76,29 @@
   .textalign{
     text-align: center;
   }
+  .colheight{
+    line-height: 24px;
+
+    td{
+      padding: 0px !important;
+    }
+  }
+  .titlestyle{
+    overflow : hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+  }
+  .itemsStyles{
+  
+    .trmargin{
+      margin-top: 20px;
+      .tdwidth{
+        width: 80px;
+        
+      }
+    }
+  }
+  
 }
