@@ -12,7 +12,7 @@ import { escape, debounce } from '@microsoft/sp-lodash-subset';
 const { TabPane } = Tabs;
 export default class BusinessApplication extends React.Component<IBusinessApplicationProps, {}> {
 
-   state = {
+  state = {
     loading: false,// 处理异步等待
     data: null,
     visible: false,// 添加抽屉状态
@@ -20,23 +20,26 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     Title: null,
     typeList: null, // 分类list
     selindex: 0,
-    timeList:null,// 初始时间轴
-    lineContent:null,// 初始化时间轴内容
-    approveDiv:null,
-    strusername:null,
-    itemTitle:null,
-    adata:null,
-    itemContent:null, //添加正文
-    itemType:null,// 添加类型
-    processVisible:false,// 处理
-    modalText:null,// 模态框内容
-    CirculateVisible:false,// 传阅
+    timeList: null,// 初始时间轴
+    lineContent: null,// 初始化时间轴内容
+    approveDiv: null,
+    strusername: null,
+    itemTitle: null,
+    adata: null,
+    itemContent: null, //添加正文
+    itemType: null,// 添加类型
+    processVisible: false,// 处理
+    modalText: null,// 模态框内容
+    CirculateVisible: false,// 传阅
     people_data: [],
     people_fetching: false,
-    defaultFiletext:[],
-    iFNUM:0,
-    applicant:null,// 申请人姓名
+    defaultFiletext: [],
+    nameList: [],
+    iFNUM: 0,
+    applicant: null,// 申请人姓名
   }
+
+  private upload_file = [];// 上传附件
 
   columns = [
     {
@@ -46,15 +49,15 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       width: '75%',
       // sortOrder: 'ascend',
       // sortDirections: ['descend'],
-      render: (text, row, index) => 
-      <Popover  placement='right' content={<div>
-        <p>标题：{row.Title}</p>
-        <p>申请人：{this.state.applicant}</p>
-        <p>申请时间：{moment(row.createTime).format('YYYY-MM-DD hh:mm')}</p>
+      render: (text, row, index) =>
+        <Popover placement='right' content={<div>
+          <p>标题：{row.Title}</p>
+          <p>申请人：{this.state.applicant}</p>
+          <p>申请时间：{moment(row.createTime).format('YYYY-MM-DD hh:mm')}</p>
         </div>} >
-         <a onClick={this.showModal.bind(this, row, index)} id='buttonck' className={styles.titlestyle} onMouseOver={this.approvlaContent.bind(this,row)}>
-           {text}</a>
-          </Popover>,
+          <a onClick={this.showModal.bind(this, row, index)} id='buttonck' className={styles.titlestyle} onMouseOver={this.approvlaContent.bind(this, row)}>
+            {text}</a>
+        </Popover>,
     },
     {
       title: '申请时间',
@@ -64,17 +67,34 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       render: text => <span className={styles.titlestyle}>{moment(text).format('YYYY-MM-DD')}</span>,// TODO：日期格式化
     }
   ];
-  
+
   /**
    * 获取人名
    */
-  private async approvlaContent(ele){
-  let userName=null;
-  let neme = await sp.web.getUserById(ele.createUserId).get()
-  userName = neme.Title;
-  this.setState(
-    {applicant:userName}
-  );
+  private async approvlaContent(ele) {
+    let userName = null;
+    let neme = await sp.web.getUserById(ele.createUserId).get()
+    userName = neme.Title;
+    this.setState(
+      { applicant: userName }
+    );
+  }
+  /**
+   * 获取下拉框的数据
+   */
+  public handleValue = (value) => {
+    //const usage = value;
+    const usage = value.map(value => ({
+      id: value.key,
+      name: value.label,
+    }));
+    console.log(usage);
+    setTimeout(() =>{
+    this.setState({
+      nameList:usage
+    });
+    },500)
+    console.log(this.state.nameList);
   }
   /**
    * 添加页面
@@ -113,8 +133,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   private last_fetch_id;
 
   private fetchUser = value => {
-    console.log(this.state.people_data);
-    console.log('fetching user', value);
+    //console.log(this.state.people_data);
+    //console.log('fetching user', value);
     this.last_fetch_id += 1;
     const fetch_id = this.last_fetch_id;
     this.setState({ people_data: [], people_fetching: true });
@@ -124,47 +144,48 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         // for fetch callback order
         return;
       }
-      const people_data = users.map(user => ({
+      const people_data1 = users.map(user => ({
         text: user.Title,
         value: user.Id,
       }));
-      this.setState({ people_data, people_fetching: false });
-      console.log(people_data);
+      this.setState({ people_data: people_data1, people_fetching: false });
+      //console.log(people_data);
     });
   };
-  
+
   /**
    * 获取附件
    */
-  private upload_file;
-  uploadOnChange = (info)=>{
-    
+
+  uploadOnChange = (info) => {
+
     if (info.file.status !== 'uploading') {
-      console.log(info.file, info.fileList);
+      //console.log(info.file, info.fileList);
     }
     if (info.file.status === 'done') {
-      this.upload_file =info.file;
+      this.upload_file.push(info.file);
       // this.getFile()
-      // message.success(`${info.file.name} 上传成功`); 
+      message.success(`${info.file.name} 上传成功`);
+      console.log(this.upload_file)
     } else if (info.file.status === 'error') {
       message.error(`${info.file.name} file upload failed.`);
     }
   }
   //添加附件
-  public fileAdd(itemid){
-    const list = sp.web.lists.getByTitle("MyList");
+  public fileAdd(itemid) {
+    const list = sp.web.lists.getByTitle(this.props.ApprovealListName);
 
     let fileInfos: AttachmentFileInfo[] = [];
-
-    fileInfos.push({
-      name: this.upload_file.name,
-      content: this.upload_file,
-    });
-
-    fileInfos.push({
+    for (var i = 0; i < this.upload_file.length; i++) {
+      fileInfos.push({
+        name: this.upload_file[i].name,
+        content: this.upload_file[i],
+      });
+    }
+    /* fileInfos.push({
       name: "My file name 2",
       content: "string, blob, or array"
-    });
+    }); */
 
     list.items.getById(itemid).attachmentFiles.addMultiple(fileInfos).then(r => {
 
@@ -172,40 +193,40 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     });
   }
   //显示附件
-  private async getFile(fileId){
+  private async getFile(fileId) {
     //console.log(this.state.defaultFiletext);
-    
+
     let item = sp.web.lists.getByTitle("审批").items.getById(fileId);
 
     // get all the attachments
-    let fileName =await item.attachmentFiles.get()
-      
-      
-     // console.log(f);
-      for(let key in fileName){
-        
-        this.state.defaultFiletext.push({
-          uid:this.state.iFNUM,
-          name:fileName[key].FileName,
-          status:'done',
-          response:'Server Error 500',
-          url:fileName[key].ServerRelativeUrl,
-        });
-        //console.log(this.state.defaultFiletext);
-        this.state.iFNUM--;
-      }
-    
+    let fileName = await item.attachmentFiles.get()
+
+
+    // console.log(f);
+    for (let key in fileName) {
+
+      this.state.defaultFiletext.push({
+        uid: this.state.iFNUM,
+        name: fileName[key].FileName,
+        status: 'done',
+        response: 'Server Error 500',
+        url: fileName[key].ServerRelativeUrl,
+      });
+      //console.log(this.state.defaultFiletext);
+      this.state.iFNUM--;
+    }
+
   }
   /**
    * 处理确定按钮
    */
   public processOk = () => {
     this.setState({
-      loading:true
+      loading: true
     });
     setTimeout(() => {
       this.setState({
-        loading:false,
+        loading: false,
         processVisible: false,
         visible1: false,
       });
@@ -223,9 +244,9 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    */
   public CirculateOk = () => {
     this.setState({
- 
-        CirculateVisible: false,
-      });
+
+      CirculateVisible: false,
+    });
   }
   /**
    * 传阅取消按钮
@@ -238,62 +259,66 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 关闭
    */
   public pageCancel = () => {
-    this.setState({ 
-      visible1: false});
+    this.setState({
+      visible1: false
+    });
   }
   /**
    * 处理按钮
    */
   public handleOk = (e) => {
     this.setState({
-      modalText:<div>
+      modalText: <div>
         <Input.TextArea
-      placeholder="同意"
-      autosize={{ minRows: 2, maxRows: 6 }}
+          placeholder="同意"
+          autosize={{ minRows: 2, maxRows: 6 }}
         />
       </div>,
-      processVisible:true,
+      processVisible: true,
     });
   }
   /**
    * 退回按钮
    */
   public handleCancel = () => {
-    this.setState({ 
-      modalText:<div>是否确认退回</div>,
-      processVisible: true });
+    this.setState({
+      modalText: <div>是否确认退回</div>,
+      processVisible: true
+    });
   }
   /**
    * 归档按钮
    */
   public File = () => {
-    this.setState({ 
-      modalText:<div>是否确认归档'</div>,
-      processVisible: true });
+    this.setState({
+      modalText: <div>是否确认归档'</div>,
+      processVisible: true
+    });
   }
   /**
    * 传阅按钮
    */
   public Circulate = () => {
-    this.state.people_data=[];
-    this.setState({ 
-      modalText:<Select
-      mode="multiple"
-      labelInValue
-      placeholder="选择需要传阅的人"
-      notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
-      filterOption={false}
-      onSearch={this.fetchUser}
-      onChange={this.handleChange}
-      style={{ width: '100%' }}
-    >
-      
-      {console.log(this.state.people_data)}
+    //this.state.people_data=[];
+    this.setState({
+      modalText: <Select
+        mode="multiple"
+        labelInValue
+        placeholder="选择需要传阅的人"
+        notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
+        filterOption={false}
+        onSearch={this.fetchUser}
+        onChange={this.handleChange}
+        style={{ width: '100%' }}
+      >
+
+        {console.log(this.state.people_data)}
         {this.state.people_data.map(t => (
-        <Select.Option key={t.value}>{t.text}</Select.Option>
-      ))}
-    </Select>,
-      CirculateVisible: true });
+          <Select.Option key={t.value}>{t.text}</Select.Option>
+        ))}
+      </Select>,
+      CirculateVisible: true
+    });
   };
 
   constructor(props) {
@@ -306,6 +331,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     this.last_fetch_id = 0;
     this.fetchUser = debounce(this.fetchUser, 500);
   }
+
 
   //添加窗口标题
   handleChangeTitle(event) {
@@ -322,7 +348,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
   // 显示添加窗体
   public createItem() {
-    this.state.people_data=[]
+    this.state.people_data = []
     this.setState({
       visible: true
     });
@@ -365,10 +391,13 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
       }).then(result => {
         result.item.select('id').get().then(d => {
+          console.log(d.Id)
+          this.fileAdd(d.Id);
           message.success(`保存成功`);
           this.setState({
             visible: false,
           });
+          this.upload_file = [];
         });
       }).catch(e => {
         message.error(`保存失败`);
@@ -410,7 +439,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * */
   private getPageList(element) {
     this.setState({
-      selindex:0
+      selindex: 0
     });
     let Approval = null;
     sp.web.currentUser.get().then(current_user => {
@@ -428,8 +457,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       }
       Approval.then(items => {
         if (items.length > 0) {
-              this.setState({
-                data: items
+          this.setState({
+            data: items
           });
         }
         else if (items.length == 0) {
@@ -480,15 +509,15 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} ne ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime', false).get();
       }
       else if (element.key == 2) {
-        ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} eq ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}` ).orderBy('createTime', false).get();
+        ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} eq ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime', false).get();
       }
       else {
         ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} ne ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime', false).get();
       }
       ccuser.then(Items => {
         if (Items.length > 0) {
-              this.setState({
-                adata: Items
+          this.setState({
+            adata: Items
           });
         }
         else {
@@ -499,19 +528,19 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       })
     });
   }
-   /**
-  *模态框 步骤页面渲染
-  */
- public async timeLine(ID) {
-  var id=ID;
-  //console.log(id);
-  var itemId=id;//打断数据传输
-  //console.log(itemId);
-  const Line = [];
-  const lineC = [];
+  /**
+ *模态框 步骤页面渲染
+ */
+  public async timeLine(ID) {
+    var id = ID;
+    //console.log(id);
+    var itemId = id;//打断数据传输
+    //console.log(itemId);
+    const Line = [];
+    const lineC = [];
 
-  let Items = await sp.web.lists.getByTitle('审批意见记录').items.filter('ApproveID eq ' + itemId).orderBy('CreateTime', true).get();
-  //console.log(Items);
+    let Items = await sp.web.lists.getByTitle('审批意见记录').items.filter('ApproveID eq ' + itemId).orderBy('CreateTime', true).get();
+    //console.log(Items);
     if (Items.length > 0) {
       var strname: string = '123';
       for (let index = 0; index < Items.length; index++) {
@@ -533,18 +562,18 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         // console.log(Items[index].CreateUserStringId);
         // console.log(Items[index]['createUserId']);        
       }
-      
+
       this.setState({
         timeList: Line,
         lineContent: lineC,
 
       });
     }
-    else{
+    else {
       this.setState({
-        timeList:null
+        timeList: null
       })
-      
+
     }
   }
   /**
@@ -553,6 +582,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   public handleChange() {
     return false;
   }
+  
 
   public render(): React.ReactElement<IBusinessApplicationProps> {
     const { visible1, visible, loading, data, Title, lineContent, approveDiv, adata } = this.state;
@@ -571,120 +601,120 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={data} size='small' pagination={{ pageSize: 5 }} />
           </div>
 
-        {/* 显示数据和进度 */}
-        <Modal   
-          width={800}    
-          visible={visible1}
-          title='待审阅'
-          centered
-          onCancel={this.pageCancel}
-          footer={null}
-        >
-          <Row gutter={24}>
-          {/* <Table columns={this.columns} rowKey='ApproveID' dataSource={dataList} size='small' />   */}
+          {/* 显示数据和进度 */}
+          <Modal
+            width={800}
+            visible={visible1}
+            title='待审阅'
+            centered
+            onCancel={this.pageCancel}
+            footer={null}
+          >
+            <Row gutter={24}>
+              {/* <Table columns={this.columns} rowKey='ApproveID' dataSource={dataList} size='small' />   */}
 
-          {/* <div>{dataList.ApproveID}</div> */}
-          
-          <Col span={14} >
-          <span style={{fontSize:'20px'}}>审批信息</span>
-          <Button style={{float:'right'}} key='Circulate' type='primary' onClick={this.Circulate}>
-            传阅
+              {/* <div>{dataList.ApproveID}</div> */}
+
+              <Col span={14} >
+                <span style={{ fontSize: '20px' }}>审批信息</span>
+                <Button style={{ float: 'right' }} key='Circulate' type='primary' onClick={this.Circulate}>
+                  传阅
           </Button>
-          <Divider></Divider>      
-          <table style={{marginBottom:'20px'}}>
-            <tbody className={styles.itemsStyles} >
-              <tr style={{lineHeight:'40px'}}>
-                <td style={{width:80}}>标题:</td>
-                <td>{data?data[this.state.selindex].Title:'没有数据！'}</td>
-              </tr>
-              <tr >
-                <td>内容:</td>
-                <td>{this.optimizingData(data?data[this.state.selindex].Content:'没有数据！')}</td>
-              </tr>
-              <tr style={{lineHeight:'40px'}}>
-                <td>附件</td>
-                <td>
-                <Upload onRemove={this.handleChange} defaultFileList={this.state.defaultFiletext?this.state.defaultFiletext:null}>               
-                </Upload>
-                </td>
-              </tr>
-              <tr >
-                <td>附件上传</td>
-                <td>
-                <Upload onChange={this.uploadOnChange}>
+                <Divider></Divider>
+                <table style={{ marginBottom: '20px' }}>
+                  <tbody className={styles.itemsStyles} >
+                    <tr style={{ lineHeight: '40px' }}>
+                      <td style={{ width: 80 }}>标题:</td>
+                      <td>{data ? data[this.state.selindex].Title : '没有数据！'}</td>
+                    </tr>
+                    <tr >
+                      <td>内容:</td>
+                      <td>{this.optimizingData(data ? data[this.state.selindex].Content : '没有数据！')}</td>
+                    </tr>
+                    <tr style={{ lineHeight: '40px' }}>
+                      <td>附件</td>
+                      <td>
+                        <Upload onRemove={this.handleChange} defaultFileList={this.state.defaultFiletext ? this.state.defaultFiletext : null}>
+                        </Upload>
+                      </td>
+                    </tr>
+                    <tr >
+                      <td>附件上传</td>
+                      <td>
+                        <Upload onChange={this.uploadOnChange}>
                           <Button size="small">
                             <Icon type="upload" /> 上传附件
                           </Button>
-                </Upload>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-          
-          <Button style={{marginLeft:'80px'}} key='submit' type='primary' onClick={this.handleOk}>
-            处理
+                        </Upload>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+
+                <Button style={{ marginLeft: '80px' }} key='submit' type='primary' onClick={this.handleOk}>
+                  处理
           </Button>
-          <Button style={{marginLeft:'15px'}} key='back' type='danger' onClick={this.handleCancel}>
-            退回
+                <Button style={{ marginLeft: '15px' }} key='back' type='danger' onClick={this.handleCancel}>
+                  退回
           </Button>
-          <Button style={{marginLeft:'15px'}} key='File' onClick={this.File}>
-            归档
-          </Button>  
-          
-          </Col>
-          <Col span={10}>
-          <Steps direction="vertical" style={{ marginTop: '10px'}}  current={2} status='finish' size='small' /* progressDot={customDot} */>
-            <Steps.Step title={'申请人：'+(this.state.applicant?this.state.applicant:'没有数据！')+'['+(data?moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  hh:mm'):'没有数据！')+']'}/>
-            {this.state.timeList}
-            <Steps.Step title='已结束' description='已结束' />
-            
-          </Steps>
-          </Col> 
-          {/* 按钮模态框 */}
-          <Modal
-          title="处理"
-          visible={this.state.processVisible}
-          centered
-          footer={null}
-          onCancel={this.processCancel}
-          >
-          {this.state.modalText}
-          <Button style={{marginLeft:'150px'}} key='submit' type='primary' loading={loading} onClick={this.processOk}>
-            确认
+                <Button style={{ marginLeft: '15px' }} key='File' onClick={this.File}>
+                  归档
           </Button>
-          <Button style={{marginLeft:'15px'}} key='back' type='danger' onClick={this.processCancel}>
-            取消
+
+              </Col>
+              <Col span={10}>
+                <Steps direction="vertical" style={{ marginTop: '10px' }} current={2} status='finish' size='small' /* progressDot={customDot} */>
+                  <Steps.Step title={'申请人：' + (this.state.applicant ? this.state.applicant : '没有数据！') + '[' + (data ? moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  hh:mm') : '没有数据！') + ']'} />
+                  {this.state.timeList}
+                  <Steps.Step title='已结束' description='已结束' />
+
+                </Steps>
+              </Col>
+              {/* 按钮模态框 */}
+              <Modal
+                title="处理"
+                visible={this.state.processVisible}
+                centered
+                footer={null}
+                onCancel={this.processCancel}
+              >
+                {this.state.modalText}
+                <Button style={{ marginLeft: '150px' }} key='submit' type='primary' loading={loading} onClick={this.processOk}>
+                  确认
           </Button>
-          </Modal>
-          {/* 传阅模态框 */}
-          <Modal
-          title="传阅"
-          visible={this.state.CirculateVisible}
-          centered
-          footer={null}
-          onCancel={this.CirculateCancel}
-          >
-          {this.state.modalText}
-          <Button style={{marginLeft:'150px'}} key='submit' type='primary' onClick={this.CirculateOk}>
-            确认
+                <Button style={{ marginLeft: '15px' }} key='back' type='danger' onClick={this.processCancel}>
+                  取消
           </Button>
-          <Button style={{marginLeft:'15px'}} key='back' type='danger' onClick={this.CirculateCancel}>
-            取消
+              </Modal>
+              {/* 传阅模态框 */}
+              <Modal
+                title="传阅"
+                visible={this.state.CirculateVisible}
+                centered
+                footer={null}
+                onCancel={this.CirculateCancel}
+              >
+                {this.state.modalText}
+                <Button style={{ marginLeft: '150px' }} key='submit' type='primary' onClick={this.CirculateOk}>
+                  确认
           </Button>
+                <Button style={{ marginLeft: '15px' }} key='back' type='danger' onClick={this.CirculateCancel}>
+                  取消
+          </Button>
+              </Modal>
+
+            </Row>
           </Modal>
 
-          </Row>
-        </Modal>
-        
-        <Drawer
-          title='提交业务申请'
-          width={580}
-          style={{ marginBottom: 0 }}
-          onClose={this.onClose}
-          visible={this.state.visible}
-        >
-          <Form layout='vertical' >
-            {/* <Row gutter={16}>
+          <Drawer
+            title='提交业务申请'
+            width={580}
+            style={{ marginBottom: 0 }}
+            onClose={this.onClose}
+            visible={this.state.visible}
+          >
+            <Form layout='vertical' >
+              {/* <Row gutter={16}>
               <Col span={12}>
                 <Form.Item label='单位'>
                   <label ></label>
@@ -732,7 +762,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               <Row gutter={8}>
                 <Col span={24}>
                   <Form.Item label='附件'>
-                    <Upload.Dragger {...this.props}>
+                    <Upload.Dragger onChange={this.uploadOnChange} multiple={true}>
                       {/*  <p className="ant-upload-drag-icon">
                      
                     </p> */}
@@ -747,44 +777,44 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               <Row gutter={8}>
                 <Col span={24}>
                   <Form.Item label="审阅" >
-                   {/*  <Menu mode='horizontal' className={styles.menu} >
+                    {/*  <Menu mode='horizontal' className={styles.menu} >
                       <Menu.Item key='1' onClick={this.approveTypefn.bind(this, '办')}>办</Menu.Item>
                       <Menu.Item key='2' onClick={this.approveTypefn.bind(this, '阅')}>阅</Menu.Item>
                     </Menu> */}
-                     <Tabs defaultActiveKey="1">
-                          <TabPane tab="审阅" key="1">
-                            <Select
-                              mode="multiple"
-                              labelInValue
-                              placeholder="请选择审阅人"
-                              notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
-                              filterOption={false}
-                              onSearch={this.fetchUser}
-                              onChange={this.handleChange}
-                             style={{ width: '100%' }}
-                            >
+                    <Tabs defaultActiveKey="1">
+                      <TabPane tab="审阅" key="1">
+                        <Select
+                          mode="multiple"
+                          labelInValue
+                          placeholder="请选择审阅人"
+                          notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
+                          filterOption={false}
+                          onSearch={this.fetchUser}
+                          onChange={this.handleValue}
+                          style={{ width: '100%' }}
+                        >
                           {this.state.people_data.map(d => (
                             <Select.Option key={d.value}>{d.text}</Select.Option>
-                           ))}
-                      </Select>
-                          </TabPane>
-                          <TabPane tab="传阅" key="2">
-                          <Select
-                              mode="multiple"
-                              labelInValue
-                              placeholder="请选择传阅人"
-                              notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
-                              filterOption={false}
-                              onSearch={this.fetchUser}
-                              onChange={this.handleChange}
-                             style={{ width: '100%' }}
-                            >
+                          ))}
+                        </Select>
+                      </TabPane>
+                      <TabPane tab="传阅" key="2">
+                        <Select
+                          mode="multiple"
+                          labelInValue
+                          placeholder="请选择传阅人"
+                          notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
+                          filterOption={false}
+                          onSearch={this.fetchUser}
+                          onChange={this.handleValue}
+                          style={{ width: '100%' }}
+                        >
                           {this.state.people_data.map(d => (
                             <Select.Option key={d.value}>{d.text}</Select.Option>
-                           ))}
-                      </Select>
-                           </TabPane>
-                      </Tabs>
+                          ))}
+                        </Select>
+                      </TabPane>
+                    </Tabs>
                   </Form.Item>
                 </Col>
 
