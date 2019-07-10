@@ -634,7 +634,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                     <tr style={{ lineHeight: '40px' }}>
                       <td>附件</td>
                       <td>
-                        <Upload onRemove={this.handleChange} defaultFileList={this.state.defaultFiletext ? this.state.defaultFiletext : null}>
+                        <Upload showUploadList={{showRemoveIcon: false}} defaultFileList={this.state.defaultFiletext ? this.state.defaultFiletext : null}>
                         </Upload>
                       </td>
                     </tr>
