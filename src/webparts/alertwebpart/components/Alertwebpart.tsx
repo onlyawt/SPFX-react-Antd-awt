@@ -2,54 +2,307 @@ import * as React from 'react';
 import styles from './Alertwebpart.module.scss';
 import { IAlertwebpartProps } from './IAlertwebpartProps';
 import { escape } from '@microsoft/sp-lodash-subset';
-import { Select, Modal, Button, Input, Form,Table } from 'antd';
+import { Select, Modal, Button, Input, Form, Table, Menu, Popover, Row, Col, Steps, Upload, Divider,message} from 'antd';
 import 'antd/dist/antd.css';
 import { sp } from '@pnp/sp';
+import * as moment from 'moment';
 
 
 export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}> {
   state = {
     data: null,
+    applicant: null,
+    visible: false,
+    timeList: null,// 初始时间轴
+    selindex: null,
+    Title: null,
+    ccName: [],
+    readName: [],
+    defaultFiletext:[],
+    iFNUM: 0,
   };
-  private columns = [
+
+  constructor(props) {
+    super(props);
+    this.getApprove(props);
+
+  }
+
+  columns = [
     {
       title: '标题',
       dataIndex: 'Title',
       key: 'Title',
+      width: '75%',
+      render: (text, row, index) =>
+        <Popover placement='right' content={<div>
+          <p>标题：{row.Title}</p>
+          <p>申请人：{this.state.applicant}</p>
+          <p>申请时间：{moment(row.createTime).format('YYYY-MM-DD hh:mm')}</p>
+        </div>} >
+          <a onClick={this.showModal.bind(this, row, index)} id='buttonck' className={styles.titlestyle} onMouseOver={this.approvlaContent.bind(this, row)}>
+            {text}</a>
+        </Popover>,
     },
     {
-      title: '审阅人',
-      dataIndex: 'age',
-      key: 'age',
-    },
+      title: '申请时间',
+      dataIndex: 'createTime',
+      key: 'createTime',
+      render: text => <span className={styles.titlestyle}>{moment(text).format('YYYY-MM-DD')}</span>,// TODO：日期格式化
+    }
   ];
-  
-  public querylist(){
-    sp.web.currentUser.get().then(items=>{
-      sp.web.lists.getByTitle('审批').items.filter(' ').get().then(item =>{
-        if(items.length > 0){
-          this.setState({
-            data:item,
-          })
-        }
-      })
+
+  private showModal = (row, index) => {
+    console.log(this.state.defaultFiletext);
+    this.approvlaContent(row);
+    this.state.defaultFiletext.splice(0);
+    this.timeLine(row.ApproveID);
+    this.getFile(row.Id);
+    this.setState({
+      selindex: index,
+      visible: true,
+    });
+  }
+  private handleOk = () => {
+    setTimeout(() => {
+      this.setState({
+        visible: false,
+      });
+    }, 2000);
+  };
+
+  private handleCancel = () => {
+    console.log('Clicked cancel button');
+    this.setState({
+      visible: false,
+    });
+  };
+  /**
+ * 获取申请人名
+ */
+  private async approvlaContent(ele) {
+    const rname = [];
+    const cname = [];
+    let userName = null;
+    let name = null;
+    let neme = await sp.web.getUserById(ele.createUserId).get()
+    userName = neme.Title;
+    this.setState({
+      applicant: userName,
+    });
+    for (let i = 0; i < ele.CCUserId.length; i++) {
+      name = await sp.web.getUserById(ele.CCUserId[i]).get()
+      cname[i] = name.Title;
+    }
+    for (let i = 0; i < ele.ReadUsersId.length; i++) {
+      name = await sp.web.getUserById(ele.ReadUsersId[i]).get()
+      rname[i] = name.Title;
+    }
+    this.setState({
+      readName: rname,
+      ccName: cname,
     })
   }
 
-  constructor(props){
-    super(props);
-    this.querylist();
+    /**
+   * 获取附件
+   */
+  // uploadOnChange = (info)=>{
+    
+  //   if (info.file.status !== 'uploading') {
+  //     console.log(info.file, info.fileList);
+  //   }
+  //   if (info.file.status === 'done') {
+  //     // this.getFile()
+  //      message.success(`${info.file.name} 上传成功`); 
+  //   } else if (info.file.status === 'error') {
+  //     message.error(`${info.file.name} file upload failed.`);
+  //   }
+  // }
+
+  private async getFile(fileId){
+    console.log(this.state.defaultFiletext);
+    
+    let item = sp.web.lists.getByTitle("审批").items.getById(fileId);
+
+    // get all the attachments
+    let fileName =await item.attachmentFiles.get()
+      
+      
+     // console.log(f);
+      for(let key in fileName){
+        
+        this.state.defaultFiletext.push({
+          uid:this.state.iFNUM,
+          name:fileName[key].FileName,
+          status:'done',
+          response:'Server Error 500',
+          url:fileName[key].ServerRelativeUrl,
+        });
+        console.log(this.state.defaultFiletext);
+        this.state.iFNUM--;
+      }
+    
+  }
+
+
+  /**
+ * 审阅信息查询
+ * 'ReadUsersId eq ' + currentUser.Id
+ */
+  private getApprove(element) {
+    this.setState({
+      selindex: 0,
+    })
+    let ccuser = null;
+    sp.web.currentUser.get().then(currentUser => {
+      if (element.key == 1) {
+        ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} ne ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime', false).get();
+      }
+      else if (element.key == 2) {
+        ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} eq ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime', false).get();
+      }
+      else {
+        ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} ne ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime', false).get();
+      }
+      ccuser.then(Items => {
+        if (Items.length > 0) {
+          this.setState({
+            data: Items
+          });
+        }
+        else {
+          this.setState({
+            data: null
+          });
+        }
+      })
+    });
+  }
+  /**
+ * 处理多行文本
+ * 
+ */
+  public optimizingData(strDate): string {
+    var msg = strDate.replace(/<\/?[^>]*>/g, ''); //去除HTML Tag
+    msg = msg.replace(/[|]*\n/, '') //去除行尾空格
+    msg = msg.replace(/&npsp;/ig, ''); //去掉npsp    
+    return msg;
+  }
+
+  /**
+*模态框 步骤页面渲染
+*/
+  public async timeLine(ID) {
+    var id = ID;
+    //console.log(id);
+    var itemId = id;//打断数据传输
+    const Line = [];
+    const lineC = [];
+
+    let Items = await sp.web.lists.getByTitle('审批意见记录').items.filter('ApproveID eq ' + itemId).orderBy('CreateTime', true).get();
+    //console.log(Items);
+    if (Items.length > 0) {
+      var strname: string = '123';
+      for (let index = 0; index < Items.length; index++) {
+        let username = await sp.web.getUserById(Items[index]['CreateUserStringId']).get();
+        strname = username.Title;
+        if (Items[index]['Content'] != null) {
+          var msgT: string = Items[index]['Content'];
+          var msg = this.optimizingData(msgT);
+          Line.push(<Steps.Step title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm') + ']'}
+            description={'审批意见：' + msg} />);
+        }
+        else {
+          Line.push(<Steps.Step title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm') + ']'}
+            description={'审批意见：' + '无审批意见'} />);
+        }
+        lineC.push(Items[index]['Content']);
+
+      }
+
+      this.setState({
+        timeList: Line,
+        lineContent: lineC,
+
+      });
+    }
+    else {
+      this.setState({
+        timeList: null
+      })
+
+    }
   }
 
 
   public render(): React.ReactElement<IAlertwebpartProps> {
 
-    const { data} = this.state;
-
+    const { data, visible } = this.state;
+    // console.log(data)
     return (
       <div className={styles.alertwebpart} >
-        <Table columns={this.columns} dataSource={data} rowKey='ApproveID' size='small'/>
-      </div >
-    );
+        <div >
+          <Menu mode='horizontal' defaultSelectedKeys={['1']} >
+            <Menu.Item key='1' onClick={this.getApprove.bind(this)}>待阅</Menu.Item>
+            <Menu.Item key='2' onClick={this.getApprove.bind(this)}>已阅</Menu.Item>
+          </Menu>
+          <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={data} size='small' pagination={{ pageSize: 5 }} />
+          <Modal
+            width={800}
+            title="待审阅"
+            visible={visible}
+            onOk={this.handleOk}
+            onCancel={this.handleCancel}
+            footer={null}
+          >
+            <Row gutter={24}>
+              <Col span={14}>
+                <table>
+                  <tr>
+                    <td>抄送人：</td>
+                    <td>{this.state.ccName}</td>
+                  </tr>
+                  <tr>
+                    <td>已审阅：</td>
+                    <td>{this.state.readName}</td>
+                  </tr>
+                </table>
+                <Divider></Divider>
+                <table style={{ marginBottom: '20px' }}>
+                  <tbody className={styles.itemsStyles} >
+                    <tr style={{ lineHeight: '40px' }}>
+                      <td style={{ width: 80 }}>标题:</td>
+                      <td>{data ? data[this.state.selindex].Title : '没有数据！'}</td>
+                    </tr>
+                    <tr >
+                      <td>内容:</td>
+                      <td>{this.optimizingData(data ? data[this.state.selindex].Content : '没有数据！')}</td>
+                    </tr>
+                    <tr style={{ lineHeight: '40px' }}>
+                      <td>附件</td>
+                      <td>
+                        <Upload  defaultFileList={this.state.defaultFiletext ? this.state.defaultFiletext : null}>
+                        </Upload>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+                <Divider></Divider>
+                <Button>审阅</Button>
+              </Col>
+              <Col span={10}>
+                <Steps direction="vertical" style={{ marginTop: '10px' }} current={2} status='finish' size='small' /* progressDot={customDot} */>
+                  <Steps.Step title={'申请人：' + (this.state.applicant ? this.state.applicant : '没有数据！') + '[' + (data ? moment(data[0].createTime).format('YYYY-MM-DD  hh:mm') : '没有数据！') + ']'} />
+                  {this.state.timeList}
+                  <Steps.Step title='已结束' description='已结束' />
+
+                </Steps>
+              </Col>
+            </Row>
+          </Modal>
+        </div>
+      </div>
+    )
   }
 }
