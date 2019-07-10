@@ -9,7 +9,7 @@ import { ApproveListItem } from './ApproveListItem';
 import { IBusinessApplicationState } from './IBusinessApplicationState';
 import { SPUser } from '@microsoft/sp-page-context';
 import { escape, debounce } from '@microsoft/sp-lodash-subset';
-
+const { TabPane } = Tabs;
 export default class BusinessApplication extends React.Component<IBusinessApplicationProps, {}> {
 
    state = {
@@ -703,28 +703,44 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               <Row gutter={8}>
                 <Col span={24}>
                   <Form.Item label="审阅" >
-                    <Menu mode='horizontal' className={styles.menu} >
+                   {/*  <Menu mode='horizontal' className={styles.menu} >
                       <Menu.Item key='1' onClick={this.approveTypefn.bind(this, '办')}>办</Menu.Item>
                       <Menu.Item key='2' onClick={this.approveTypefn.bind(this, '阅')}>阅</Menu.Item>
-                    </Menu>
-                    <div>
-                      {this.state.approveDiv}
-                      <Select
-                        mode="multiple"
-                        labelInValue
-                        placeholder="Select users"
-                        notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
-                        filterOption={false}
-                        onSearch={this.fetchUser}
-                        onChange={this.handleChange}
-                        style={{ width: '100%' }}
-                      >
-                        {this.state.people_data.map(d => (
-                          <Select.Option key={d.value}>{d.text}</Select.Option>
-                        ))}
+                    </Menu> */}
+                     <Tabs defaultActiveKey="1">
+                          <TabPane tab="审阅" key="1">
+                            <Select
+                              mode="multiple"
+                              labelInValue
+                              placeholder="请选择审阅人"
+                              notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
+                              filterOption={false}
+                              onSearch={this.fetchUser}
+                              onChange={this.handleChange}
+                             style={{ width: '100%' }}
+                            >
+                          {this.state.people_data.map(d => (
+                            <Select.Option key={d.value}>{d.text}</Select.Option>
+                           ))}
                       </Select>
-
-                    </div>
+                          </TabPane>
+                          <TabPane tab="传阅" key="2">
+                          <Select
+                              mode="multiple"
+                              labelInValue
+                              placeholder="请选择传阅人"
+                              notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
+                              filterOption={false}
+                              onSearch={this.fetchUser}
+                              onChange={this.handleChange}
+                             style={{ width: '100%' }}
+                            >
+                          {this.state.people_data.map(d => (
+                            <Select.Option key={d.value}>{d.text}</Select.Option>
+                           ))}
+                      </Select>
+                           </TabPane>
+                      </Tabs>
                   </Form.Item>
                 </Col>
 
