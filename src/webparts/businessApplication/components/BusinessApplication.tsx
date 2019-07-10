@@ -3,7 +3,7 @@ import styles from './BusinessApplication.module.scss';
 import { IBusinessApplicationProps } from './IBusinessApplicationProps';
 import 'antd/dist/antd.css';
 import { Tabs, Button, Table, Menu, Drawer, message, Form, Radio, Col, Row, Input, Select, Steps, Upload, Divider, Icon, Modal, Popover, Spin } from 'antd';
-import { sp, Items } from '@pnp/sp';
+import { sp, Items, AttachmentFileInfo } from '@pnp/sp';
 import * as moment from 'moment';
 import { ApproveListItem } from './ApproveListItem';
 import { IBusinessApplicationState } from './IBusinessApplicationState';
@@ -19,7 +19,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     visible1: false,
     Title: null,
     typeList: null, // 分类list
-    //selindex: 0,
+    selindex: 0,
     timeList:null,// 初始时间轴
     lineContent:null,// 初始化时间轴内容
     approveDiv:null,
@@ -64,6 +64,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       render: text => <span className={styles.titlestyle}>{moment(text).format('YYYY-MM-DD')}</span>,// TODO：日期格式化
     }
   ];
+  
   /**
    * 获取人名
    */
@@ -88,8 +89,9 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 根据id查询一条数据
    */
   private showModal = (row, index) => {
-    console.log(this.state.defaultFiletext);
+    //console.log(this.state.defaultFiletext);
     this.approvlaContent(row);
+    this.state.people_data.splice(0);
     this.state.defaultFiletext.splice(0);
     /* this.state.defaultFiletext.push({
       uid:null,
@@ -111,12 +113,13 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   private last_fetch_id;
 
   private fetchUser = value => {
+    console.log(this.state.people_data);
     console.log('fetching user', value);
     this.last_fetch_id += 1;
     const fetch_id = this.last_fetch_id;
     this.setState({ people_data: [], people_fetching: true });
     sp.web.siteUsers.filter("substringof('" + value + "',Title) or substringof('" + value + "',LoginName)").get().then(users => {
-      console.log('siteUsers', users);
+      //console.log('siteUsers', users);
       if (fetch_id !== this.last_fetch_id) {
         // for fetch callback order
         return;
@@ -129,24 +132,48 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       console.log(people_data);
     });
   };
+  
   /**
    * 获取附件
    */
+  private upload_file;
   uploadOnChange = (info)=>{
     
     if (info.file.status !== 'uploading') {
       console.log(info.file, info.fileList);
     }
     if (info.file.status === 'done') {
+      this.upload_file =info.file;
       // this.getFile()
-       message.success(`${info.file.name} 上传成功`); 
+      // message.success(`${info.file.name} 上传成功`); 
     } else if (info.file.status === 'error') {
       message.error(`${info.file.name} file upload failed.`);
     }
   }
-  
+  //添加附件
+  public fileAdd(itemid){
+    const list = sp.web.lists.getByTitle("MyList");
+
+    let fileInfos: AttachmentFileInfo[] = [];
+
+    fileInfos.push({
+      name: this.upload_file.name,
+      content: this.upload_file,
+    });
+
+    fileInfos.push({
+      name: "My file name 2",
+      content: "string, blob, or array"
+    });
+
+    list.items.getById(itemid).attachmentFiles.addMultiple(fileInfos).then(r => {
+
+      console.log(r);
+    });
+  }
+  //显示附件
   private async getFile(fileId){
-    console.log(this.state.defaultFiletext);
+    //console.log(this.state.defaultFiletext);
     
     let item = sp.web.lists.getByTitle("审批").items.getById(fileId);
 
@@ -164,7 +191,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           response:'Server Error 500',
           url:fileName[key].ServerRelativeUrl,
         });
-        console.log(this.state.defaultFiletext);
+        //console.log(this.state.defaultFiletext);
         this.state.iFNUM--;
       }
     
@@ -192,7 +219,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     this.setState({ processVisible: false });
   }
   /**
-   * 处理确定按钮
+   * 传阅确定按钮
    */
   public CirculateOk = () => {
     this.setState({
@@ -201,7 +228,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       });
   }
   /**
-   * 处理取消按钮
+   * 传阅取消按钮
    */
 
   public CirculateCancel = () => {
@@ -220,11 +247,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   public handleOk = (e) => {
     this.setState({
       modalText:<div>
-        <Upload onChange={this.uploadOnChange}  defaultFileList={this.state.defaultFiletext}>
-    <Button>
-      <Icon type="upload" /> Upload
-    </Button>
-  </Upload>
+        <Input.TextArea
+      placeholder="同意"
+      autosize={{ minRows: 2, maxRows: 6 }}
+        />
       </div>,
       processVisible:true,
     });
@@ -249,6 +275,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 传阅按钮
    */
   public Circulate = () => {
+    this.state.people_data=[];
     this.setState({ 
       modalText:<Select
       mode="multiple"
@@ -260,8 +287,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       onChange={this.handleChange}
       style={{ width: '100%' }}
     >
-      {this.state.people_data.map(d => (
-        <Select.Option key={d.value}>{d.text}</Select.Option>
+      
+      {console.log(this.state.people_data)}
+        {this.state.people_data.map(t => (
+        <Select.Option key={t.value}>{t.text}</Select.Option>
       ))}
     </Select>,
       CirculateVisible: true });
@@ -293,6 +322,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
   // 显示添加窗体
   public createItem() {
+    this.state.people_data=[]
     this.setState({
       visible: true
     });
@@ -312,6 +342,9 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     approve += createdate.getDay().toString() + createdate.getHours().toString() + createdate.getMinutes().toString()
     approve += createdate.getSeconds().toString() + createdate.getMilliseconds().toString();
     setTimeout(hide, 500);
+
+
+
     sp.web.currentUser.get().then(current_user => {
       //console.log(current_user);
 
@@ -376,6 +409,9 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 传入菜单项的key值
    * */
   private getPageList(element) {
+    this.setState({
+      selindex:0
+    });
     let Approval = null;
     sp.web.currentUser.get().then(current_user => {
       if (element.key == 1) {
@@ -470,7 +506,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   var id=ID;
   //console.log(id);
   var itemId=id;//打断数据传输
-  console.log(itemId);
+  //console.log(itemId);
   const Line = [];
   const lineC = [];
 
@@ -512,8 +548,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     }
   }
   /**
-   * 直接删除某一个item
-   * 删除成功则返回true
+   * 
    */
   public handleChange() {
     return false;
@@ -560,17 +595,26 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             <tbody className={styles.itemsStyles} >
               <tr style={{lineHeight:'40px'}}>
                 <td style={{width:80}}>标题:</td>
-                <td>{data?data[0].Title:'没有数据！'}</td>
+                <td>{data?data[this.state.selindex].Title:'没有数据！'}</td>
               </tr>
               <tr >
                 <td>内容:</td>
-                <td>{this.optimizingData(data?data[0].Content:'没有数据！')}</td>
+                <td>{this.optimizingData(data?data[this.state.selindex].Content:'没有数据！')}</td>
               </tr>
               <tr style={{lineHeight:'40px'}}>
                 <td>附件</td>
                 <td>
-                <Upload onChange={this.uploadOnChange}  defaultFileList={this.state.defaultFiletext?this.state.defaultFiletext:null}>
-                
+                <Upload onRemove={this.handleChange} defaultFileList={this.state.defaultFiletext?this.state.defaultFiletext:null}>               
+                </Upload>
+                </td>
+              </tr>
+              <tr >
+                <td>附件上传</td>
+                <td>
+                <Upload onChange={this.uploadOnChange}>
+                          <Button size="small">
+                            <Icon type="upload" /> 上传附件
+                          </Button>
                 </Upload>
                 </td>
               </tr>
@@ -590,7 +634,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           </Col>
           <Col span={10}>
           <Steps direction="vertical" style={{ marginTop: '10px'}}  current={2} status='finish' size='small' /* progressDot={customDot} */>
-            <Steps.Step title={'申请人：'+(this.state.applicant?this.state.applicant:'没有数据！')+'['+(data?moment(data[0].createTime).format('YYYY-MM-DD  hh:mm'):'没有数据！')+']'}/>
+            <Steps.Step title={'申请人：'+(this.state.applicant?this.state.applicant:'没有数据！')+'['+(data?moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  hh:mm'):'没有数据！')+']'}/>
             {this.state.timeList}
             <Steps.Step title='已结束' description='已结束' />
             
@@ -712,12 +756,13 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                       <Select
                         mode="multiple"
                         labelInValue
-                        placeholder="Select users"
+                        placeholder="选择用户"
                         notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
                         filterOption={false}
                         onSearch={this.fetchUser}
                         onChange={this.handleChange}
                         style={{ width: '100%' }}
+                        tokenSeparators={[',']}
                       >
                         {this.state.people_data.map(d => (
                           <Select.Option key={d.value}>{d.text}</Select.Option>
