@@ -34,7 +34,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     people_data: [],
     people_fetching: false,
     defaultFiletext: [],
-    nameList: [],
+    nameList: null,
+    nameListView: [],
     iFNUM: 0,
     applicant: null,// 申请人姓名
   }
@@ -80,21 +81,31 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     );
   }
   /**
-   * 获取下拉框的数据
+   * 获取审阅下拉框的数据
    */
   public handleValue = (value) => {
     //const usage = value;
-    const usage = value.map(value => ({
-      id: value.key,
-      name: value.label,
-    }));
-    console.log(usage);
-    setTimeout(() =>{
-    this.setState({
-      nameList:usage
-    });
-    },500)
+    
+    var userid:number =value.key;
+    this.state.nameList=userid;
     console.log(this.state.nameList);
+  }
+  /**
+   * 获取传阅阅下拉框的数据
+   */
+  public handleValueView = (value) => {
+    //const usage = value;
+    const usageView = value.map(value => ({
+      id: value.key,
+    }));
+    console.log(usageView.length);
+    var k_1:number=usageView.length;
+    let nameli:Array<number>=[]
+    for(var i=0;i<k_1;i++){
+      nameli[i]=Number(usageView[i].id);
+    }
+      this.state.nameListView=nameli
+    console.log(this.state.nameListView);
   }
   /**
    * 添加页面
@@ -158,12 +169,15 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    */
 
   uploadOnChange = (info) => {
-
+    this.upload_file=[];
+    console.log(info);
+      for(var i=0;i<info.fileList.length;i++){
+      this.upload_file.push(info.fileList[i]);
+      }
     if (info.file.status !== 'uploading') {
       //console.log(info.file, info.fileList);
     }
-    if (info.file.status === 'done') {
-      this.upload_file.push(info.file);
+    if (info.file.status === 'done') {     
       // this.getFile()
       message.success(`${info.file.name} 上传成功`);
       console.log(this.upload_file)
@@ -176,6 +190,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     const list = sp.web.lists.getByTitle(this.props.ApprovealListName);
 
     let fileInfos: AttachmentFileInfo[] = [];
+    console.log(this.upload_file.length);
     for (var i = 0; i < this.upload_file.length; i++) {
       fileInfos.push({
         name: this.upload_file[i].name,
@@ -186,9 +201,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       name: "My file name 2",
       content: "string, blob, or array"
     }); */
-
+    console.log(fileInfos);
     list.items.getById(itemid).attachmentFiles.addMultiple(fileInfos).then(r => {
-
       console.log(r);
     });
   }
@@ -372,11 +386,12 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
 
     sp.web.currentUser.get().then(current_user => {
-      //console.log(current_user);
-
+      console.log(this.state.nameList);
+      console.log(this.state.nameList.key);
       var uid = current_user.Id;
       var ulgon = current_user.LoginName;
       //console.log(uid);
+      
       sp.web.lists.getByTitle(this.props.ApprovealListName).items.add({
         Title: this.state.itemTitle, //标题
         Content: this.state.itemContent,//正文
@@ -385,6 +400,13 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         ApprovalState: "待审阅",
         ApproveID: parseInt(approve),
         createUserId: current_user.Id,
+        ApprovalUserId:this.state.nameList,
+        CCUserId:{
+          results:this.state.nameListView
+        },
+        /* CCUserId:{
+          results:[this.state.nameList[0].id]
+        } */
         // createUser:{
         //  results: [ 624, 45 ]
         // }
@@ -398,6 +420,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             visible: false,
           });
           this.upload_file = [];
+          //this.state.nameList=[]
         });
       }).catch(e => {
         message.error(`保存失败`);
@@ -634,7 +657,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                     <tr style={{ lineHeight: '40px' }}>
                       <td>附件</td>
                       <td>
-                        <Upload onRemove={this.handleChange} defaultFileList={this.state.defaultFiletext ? this.state.defaultFiletext : null}>
+                        <Upload showUploadList={{showRemoveIcon: false}} defaultFileList={this.state.defaultFiletext ? this.state.defaultFiletext : null}>
                         </Upload>
                       </td>
                     </tr>
@@ -755,7 +778,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               <Row gutter={16}>
                 <Col span={24}>
                   <Form.Item label="内容">
-                    <Input.TextArea rows={4} value={this.state.itemContent} onChange={this.handleChangeContent} placeholder="请输入内容" className={styles.textalign} />
+                    <Input.TextArea rows={2} value={this.state.itemContent} onChange={this.handleChangeContent} placeholder="请输入内容" className={styles.textalign} />
                   </Form.Item>
                 </Col>
               </Row>
@@ -784,7 +807,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                     <Tabs defaultActiveKey="1">
                       <TabPane tab="审阅" key="1">
                         <Select
-                          mode="multiple"
+                          showSearch={true}
                           labelInValue
                           placeholder="请选择审阅人"
                           notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
@@ -806,7 +829,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                           notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
                           filterOption={false}
                           onSearch={this.fetchUser}
-                          onChange={this.handleValue}
+                          onChange={this.handleValueView}
                           style={{ width: '100%' }}
                         >
                           {this.state.people_data.map(d => (
