@@ -613,7 +613,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     return (
 
       <div className={styles.businessApplication}>
-        <div className={styles.tablewid}>
+        <div>
           <Menu mode='horizontal' defaultSelectedKeys={['1']} >
             <Menu.Item key='1' onClick={this.getPageList.bind(this)}>待办</Menu.Item>
             <Menu.Item key='2' onClick={this.getPageList.bind(this)}>已办</Menu.Item>
@@ -866,13 +866,13 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           </Drawer>
 
         </div>
-        <div className={styles.tablewid}>
+        {/* <div className={styles.tablewid}>
           <Menu mode='horizontal' defaultSelectedKeys={['1']} >
             <Menu.Item key='1' onClick={this.getApprove.bind(this)}>待阅</Menu.Item>
             <Menu.Item key='2' onClick={this.getApprove.bind(this)}>已阅</Menu.Item>
           </Menu>
           <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={adata} size='small' pagination={{ pageSize: 5 }} />
-        </div>
+        </div> */}
       </div>
     );
   }
