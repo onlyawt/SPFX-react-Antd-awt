@@ -38,6 +38,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     nameListView: [],
     iFNUM: 0,
     applicant: null,// 申请人姓名
+    modalTitle: null,
   }
 
   private upload_file = [];// 上传附件
@@ -462,7 +463,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * */
   private getPageList(element) {
     this.setState({
-      selindex: 0
+      selindex: 0,
+      modalTitle: '待办',
     });
     let Approval = null;
     sp.web.currentUser.get().then(current_user => {
@@ -471,9 +473,15 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       }
       else if (element.key == 2) {
         Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUsersId eq ' + current_user.Id).orderBy('createTime', false).get();
+        this.setState({
+          modalTitle: '已办',
+        });
       }
       else if (element.key == 3) {
         Approval = sp.web.lists.getByTitle('审批').items.filter('createUserId eq ' + current_user.Id).orderBy('createTime', false).get();
+        this.setState({
+          modalTitle: '我的发起',
+        });
       }
       else {
         Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime', false).get();
@@ -628,7 +636,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           <Modal
             width={800}
             visible={visible1}
-            title='待审阅'
+            title={this.state.modalTitle}
             centered
             onCancel={this.pageCancel}
             footer={null}

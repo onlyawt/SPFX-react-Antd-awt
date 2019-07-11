@@ -21,7 +21,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
     iFNUM: 0,
     modalTitle: '审阅',
     processVisible: false,
-    buttonState: false, // 审阅按钮状态
+    buttonState: 'block', // 审阅按钮状态
     modalText: null, // 对话框标题
     loading: false,
     itemContent: null, // 添加正文
@@ -95,11 +95,11 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
     });
     for (let i = 0; i < ele.CCUserId.length; i++) {
       name = await sp.web.getUserById(ele.CCUserId[i]).get();
-      cname[i] = name.Title;
+      cname[i] = name.Title+' ';
     }
     for (let i = 0; i < ele.ReadUsersId.length; i++) {
       name = await sp.web.getUserById(ele.ReadUsersId[i]).get();
-      rname[i] = name.Title;
+      rname[i] = name.Title+' ';
     }
     this.setState({
       readName: rname,
@@ -154,7 +154,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
   private getApprove(element) {
     this.setState({
       selindex: 0,
-      buttonState: false,
+      buttonState: 'block',
       modalTitle: '审阅',
     });
     let ccuser = null;
@@ -166,7 +166,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
         ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} eq ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime', false).get();
         this.setState({
           modalTitle: '已审阅',
-          buttonState: true,
+          buttonState: 'none',
         });
       }
       else {
@@ -203,7 +203,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
   /**
  * 处理确定按钮
  */
-  public processOk = () => {
+  public processOk = (ele) => {
     if(this.state.itemContent == null){
       this.setState({itemContent:'已审阅'})
     }
@@ -218,7 +218,6 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
       });
     }, 2000);
     setTimeout(()=>console.log(this.state.itemContent),2000)
-    
   }
 
   /**
@@ -325,7 +324,9 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
                   </tbody>
                 </table>
                 <Divider></Divider>
-                <Button disabled={this.state.buttonState} key='submit' type='primary' onClick={this.handleOk} >审阅</Button>
+                <div style={{display:this.state.buttonState}}>
+                <Button  key='submit' type='primary' onClick={this.handleOk} >审阅</Button>
+                </div>
               </Col>
               <Col span={10}>
                 <Steps direction='vertical' style={{ marginTop: '10px' }} current={2} status='finish' size='small' /* progressDot={customDot} */>
@@ -351,7 +352,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
                   onChange={this.handleChangeContent}
                 />
               </div>
-              <Button style={{ marginLeft: '150px' }} key='submit' type='primary' loading={loading} onClick={this.processOk}>
+              <Button style={{ marginLeft: '150px' }} key='submit' type='primary' loading={loading} onClick={this.processOk.bind(this,data[this.state.selindex])}>
                 确认
               </Button>
               <Button style={{ marginLeft: '15px' }} key='back' type='danger' onClick={this.processCancel}>
