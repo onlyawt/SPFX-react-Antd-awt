@@ -574,7 +574,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       var strname:string = Approvalname.Title;
       //console.log(waitText.ApprovalUserStringId);
     Linewait.push(<Steps.Step status="process" icon={<Icon type="loading" />} title={'当前处理人：' + strname + '[' + moment(waitText['CreateTime']).format('YYYY-MM-DD  hh:mm') + ']'}
-            description={'审批内容：' + '待审阅中...'} />);
+            description={'审批内容：' + '待审批...'} />);
     }
     else{
       this.state.status="finish",
@@ -584,7 +584,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     this.setState({
       waitList: Linewait,
     });
-    console.log(this.state.waitList);
+    //console.log(this.state.waitList);
   }
   /**
    * 
