@@ -41,6 +41,9 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     iFNUM: 0,
     applicant: null,// 申请人姓名
     modalTitle: null,
+    cButtonState:'inline-block', // 处理按钮状态
+    tButtonState:'inline-block', // 退回按钮状态
+    gButtonState:'inline-block', // 归档按钮状态
   }
 
   private upload_file = [];// 上传附件
@@ -413,6 +416,9 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     this.setState({
       selindex: 0,
       modalTitle: '待办',
+      cButtonState:'inline-block', // 处理按钮状态
+      tButtonState:'inline-block', // 退回按钮状态
+      gButtonState:'inline-block', // 归档按钮状态  
     });
     let Approval = null;
     sp.web.currentUser.get().then(current_user => {
@@ -423,6 +429,9 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUsersId eq ' + current_user.Id).orderBy('createTime', false).get();
         this.setState({
           modalTitle: '已办',
+          cButtonState:'none', // 处理按钮状态
+          tButtonState:'none', // 退回按钮状态
+          gButtonState:'none', // 归档按钮状态      
         });
       }
       else if (element.key == 3) {
@@ -661,13 +670,13 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                   </tbody>
                 </table>
 
-                <Button style={{ marginLeft: '80px' }} key='submit' type='primary' onClick={this.handleOk}>
+                <Button style={{ marginLeft: '80px',display:this.state.cButtonState}} key='submit' type='primary' onClick={this.handleOk}>
                   处理
           </Button>
-                <Button style={{ marginLeft: '15px' }} key='back' type='danger' onClick={this.handleCancel}>
+                <Button style={{ marginLeft: '15px' ,display:this.state.tButtonState}} key='back' type='danger' onClick={this.handleCancel}>
                   退回
           </Button>
-                <Button style={{ marginLeft: '15px' }} key='File' onClick={this.File}>
+                <Button style={{ marginLeft: '15px' ,display:this.state.gButtonState}} key='File' onClick={this.File}>
                   归档
           </Button>
 
