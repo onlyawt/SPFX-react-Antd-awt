@@ -14,13 +14,14 @@
   "requiresCustomScript": false,
 
   "preconfiguredEntries": [{
-    "groupId": "5c03119e-3074-46fd-976b-c60198311f70", // Other
+    "groupId": "5c03119e-3074-46fd-976b-c60198311f70", 
     "group": { "default": "Other" },
-    "title": { "default": "alertwebpart" },
-    "description": { "default": "alertwebpart description" },
+    "title": { "default": "业务审阅" },
+    "description": { "default": "业务审阅WebPart" },
     "officeFabricIconFontName": "Page",
     "properties": {
-      "description": "alertwebpart"
+      "ApprovealListName": "业务申请",
+      "ApprovealRecordListName":"业务申请审阅记录表"
     }
   }]
 }
