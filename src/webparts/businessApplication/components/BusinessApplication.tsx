@@ -21,6 +21,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     typeList: null, // 分类list
     selindex: 0,
     timeList: null,// 初始时间轴
+    waitList:null,//待审批
     lineContent: null,// 初始化时间轴内容
     approveDiv: null,
     strusername: null,
@@ -36,6 +37,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     defaultFiletext: [],
     nameList: null,
     nameListView: [],
+    status:"wait",
     iFNUM: 0,
     applicant: null,// 申请人姓名
     modalTitle: null,
@@ -84,29 +86,23 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   /**
    * 获取审阅下拉框的数据
    */
-  public handleValue = (value) => {
-    //const usage = value;
-    
+  public handleValue = (value) => {    
     var userid:number =value.key;
     this.state.nameList=userid;
-    console.log(this.state.nameList);
   }
   /**
    * 获取传阅阅下拉框的数据
    */
   public handleValueView = (value) => {
-    //const usage = value;
     const usageView = value.map(value => ({
       id: value.key,
     }));
-    console.log(usageView.length);
     var k_1:number=usageView.length;
     let nameli:Array<number>=[]
     for(var i=0;i<k_1;i++){
       nameli[i]=Number(usageView[i].id);
     }
       this.state.nameListView=nameli
-    console.log(this.state.nameListView);
   }
   /**
    * 添加页面
@@ -121,18 +117,11 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 根据id查询一条数据
    */
   private showModal = (row, index) => {
-    //console.log(this.state.defaultFiletext);
     this.approvlaContent(row);
     this.state.people_data.splice(0);
     this.state.defaultFiletext.splice(0);
-    /* this.state.defaultFiletext.push({
-      uid:null,
-      name:'没有附件',
-      status:'error',
-      response:'Server Error 500',
-      url:null,
-    }); */
     this.timeLine(row.ApproveID);
+    this.waitLine(row);
     this.getFile(row.Id);
     this.setState({
       selindex: index,
@@ -145,15 +134,11 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   private last_fetch_id;
 
   private fetchUser = value => {
-    //console.log(this.state.people_data);
-    //console.log('fetching user', value);
     this.last_fetch_id += 1;
     const fetch_id = this.last_fetch_id;
     this.setState({ people_data: [], people_fetching: true });
     sp.web.siteUsers.filter("substringof('" + value + "',Title) or substringof('" + value + "',LoginName)").get().then(users => {
-      //console.log('siteUsers', users);
       if (fetch_id !== this.last_fetch_id) {
-        // for fetch callback order
         return;
       }
       const people_data1 = users.map(user => ({
@@ -161,7 +146,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         value: user.Id,
       }));
       this.setState({ people_data: people_data1, people_fetching: false });
-      //console.log(people_data);
     });
   };
 
@@ -171,17 +155,13 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
   uploadOnChange = (info) => {
     this.upload_file=[];
-    console.log(info);
       for(var i=0;i<info.fileList.length;i++){
       this.upload_file.push(info.fileList[i]);
       }
     if (info.file.status !== 'uploading') {
-      //console.log(info.file, info.fileList);
     }
     if (info.file.status === 'done') {     
-      // this.getFile()
       message.success(`${info.file.name} 上传成功`);
-      console.log(this.upload_file)
     } else if (info.file.status === 'error') {
       message.error(`${info.file.name} file upload failed.`);
     }
@@ -191,25 +171,17 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     const list = sp.web.lists.getByTitle(this.props.ApprovealListName);
 
     let fileInfos: AttachmentFileInfo[] = [];
-    console.log(this.upload_file.length);
     for (var i = 0; i < this.upload_file.length; i++) {
       fileInfos.push({
         name: this.upload_file[i].name,
         content: this.upload_file[i],
       });
     }
-    /* fileInfos.push({
-      name: "My file name 2",
-      content: "string, blob, or array"
-    }); */
-    console.log(fileInfos);
     list.items.getById(itemid).attachmentFiles.addMultiple(fileInfos).then(r => {
-      console.log(r);
     });
   }
   //显示附件
   private async getFile(fileId) {
-    //console.log(this.state.defaultFiletext);
 
     let item = sp.web.lists.getByTitle("审批").items.getById(fileId);
 
@@ -217,7 +189,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     let fileName = await item.attachmentFiles.get()
 
 
-    // console.log(f);
     for (let key in fileName) {
 
       this.state.defaultFiletext.push({
@@ -227,7 +198,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         response: 'Server Error 500',
         url: fileName[key].ServerRelativeUrl,
       });
-      //console.log(this.state.defaultFiletext);
+
       this.state.iFNUM--;
     }
 
@@ -246,6 +217,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         visible1: false,
       });
     }, 2000);
+    this.state.waitList=[];
   }
   /**
    * 处理取消按钮
@@ -271,12 +243,15 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     this.setState({ CirculateVisible: false });
   }
   /**
-   * 关闭
+   * 弹出页面关闭
    */
   public pageCancel = () => {
     this.setState({
       visible1: false
     });
+    this.state.waitList=[];
+    this.state.status="wait"
+
   }
   /**
    * 处理按钮
@@ -314,7 +289,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 传阅按钮
    */
   public Circulate = () => {
-    //this.state.people_data=[];
     this.setState({
       modalText: <Select
         mode="multiple"
@@ -339,7 +313,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   constructor(props) {
     super(props);
     this.getPageList(props);
-    this.getApprove(props);
+    //this.getApprove(props);
     this.handleChangeTitle = this.handleChangeTitle.bind(this);
     this.handleChangeContent = this.handleChangeContent.bind(this);
     this.handleChangetype = this.handleChangetype.bind(this);
@@ -387,12 +361,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
 
     sp.web.currentUser.get().then(current_user => {
-      console.log(this.state.nameList);
-      console.log(this.state.nameList.key);
       var uid = current_user.Id;
-      var ulgon = current_user.LoginName;
-      //console.log(uid);
-      
+      var ulgon = current_user.LoginName;      
       sp.web.lists.getByTitle(this.props.ApprovealListName).items.add({
         Title: this.state.itemTitle, //标题
         Content: this.state.itemContent,//正文
@@ -405,16 +375,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         CCUserId:{
           results:this.state.nameListView
         },
-        /* CCUserId:{
-          results:[this.state.nameList[0].id]
-        } */
-        // createUser:{
-        //  results: [ 624, 45 ]
-        // }
-
       }).then(result => {
         result.item.select('id').get().then(d => {
-          console.log(d.Id)
+
+          console.log(d)
           this.fileAdd(d.Id);
           message.success(`保存成功`);
           this.setState({
@@ -429,22 +393,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     });
 
   }
-
-
-  //初始化分类
-  /*  public getType() {
-     const options = [];
-     sp.web.lists.getByTitle('分类').items.getAll().then(Items => {
-       if (Items.length > 0) {
-         for (let index = 0; index < Items.length; index++) {
-           options.push(<Select.Option value={Items[index]['Title']}>{Items[index]['Title']}</Select.Option>);
-         }
-         this.setState({
-           typeList: options,
-         });
-       }
-     });
-   } */
   // 初始化办、阅人员选择内容;aid 标签状态1办，2是阅
   public approveTypefn(aid, event) {
     var i = aid;
@@ -507,12 +455,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   public getPage(itemId) {
     let options = [];
     sp.web.lists.getByTitle('审批').items.filter('ApproveID eq ' + itemId).getAll().then(items => {
-      // console.log(items.length);
-      // console.log(items[0]['ID']);
       if (items.length > 0) {
-        // options.push(Items[0]['ID']); 
         options[0] = items[0]['Title'];
-        // console.log(options);
         this.setState({
           Title: options
         });
@@ -533,7 +477,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 审阅信息查询
    * 'ReadUsersId eq ' + currentUser.Id
    */
-  private getApprove(element) {
+  /* private getApprove(element) {
     let ccuser = null;
     sp.web.currentUser.get().then(currentUser => {
       if (element.key == 1) {
@@ -558,7 +502,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         }
       })
     });
-  }
+  } */
   /**
  *模态框 步骤页面渲染
  */
@@ -570,7 +514,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     const Line = [];
     const lineC = [];
 
-    let Items = await sp.web.lists.getByTitle('审批意见记录').items.filter('ApproveID eq ' + itemId).orderBy('CreateTime', true).get();
+    let Items = await sp.web.lists.getByTitle('审批意见记录').items.filter(`${'ApprovalState'} ne '阅读传阅' and ${'ApproveID'} eq ${itemId}`).orderBy('CreateTime', true).get();
     //console.log(Items);
     if (Items.length > 0) {
       var strname: string = '123';
@@ -580,18 +524,27 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         if (Items[index]['Content'] != null) {
           var msgT: string = Items[index]['Content'];
           var msg = this.optimizingData(msgT);
-          Line.push(<Steps.Step title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm') + ']'}
-            description={'审批意见：' + msg} />);
+          // console.log(Items[index]['ApprovalState'])
+          if(Items[index]['ApprovalState']!="退回"){
+          Line.push(<Steps.Step status="finish" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm') + ']'}
+            description={'审批内容：' + msg} />);
+          }
+          else{
+          Line.push(<Steps.Step icon={<Icon type="close-circle"/>}  status="error" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm') + ']'}
+            description={'审批内容：' + '已退回'} />);
+          }
         }
         else {
-          Line.push(<Steps.Step title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm') + ']'}
-            description={'审批意见：' + '无审批意见'} />);
+          if(Items[index]['ApprovalState']!="退回"){
+          Line.push(<Steps.Step status="finish" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm') + ']'}
+            description={'审批内容：' + '无审批意见'} />);
+          }
+          else{
+          Line.push(<Steps.Step icon={<Icon type="close-circle"/>}  status="error" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm') + ']'}
+            description={'审批内容：' + '已退回'} />);
+          }
         }
-        lineC.push(Items[index]['Content']);
-
-        // console.log(Items[index]);
-        // console.log(Items[index].CreateUserStringId);
-        // console.log(Items[index]['createUserId']);        
+        lineC.push(Items[index]['Content']);  
       }
 
       this.setState({
@@ -606,6 +559,32 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       })
 
     }
+  }
+  /**
+   * 时间轴中待审批
+   */
+  public waitLine = async (waitText)=>{
+    //console.log(waitText);
+    //let Items = await sp.web.lists.getByTitle('审批').items.filter('Id eq ' + Id).orderBy('CreateTime', true).get();
+    const Linewait = [];
+    
+    
+    if(waitText.ApprovalUserStringId!=null){
+      let Approvalname = await sp.web.getUserById(waitText['ApprovalUserStringId']).get();
+      var strname:string = Approvalname.Title;
+      //console.log(waitText.ApprovalUserStringId);
+    Linewait.push(<Steps.Step status="process" icon={<Icon type="loading" />} title={'当前处理人：' + strname + '[' + moment(waitText['CreateTime']).format('YYYY-MM-DD  hh:mm') + ']'}
+            description={'审批内容：' + '待审阅中...'} />);
+    }
+    else{
+      this.state.status="finish",
+      //console.log(this.state.status);
+      Linewait.push(null);
+    }
+    this.setState({
+      waitList: Linewait,
+    });
+    console.log(this.state.waitList);
   }
   /**
    * 
@@ -694,10 +673,11 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
               </Col>
               <Col span={10}>
-                <Steps direction="vertical" style={{ marginTop: '10px' }} current={2} status='finish' size='small' /* progressDot={customDot} */>
-                  <Steps.Step title={'申请人：' + (this.state.applicant ? this.state.applicant : '没有数据！') + '[' + (data ? moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  hh:mm') : '没有数据！') + ']'} />
+                <Steps direction="vertical" style={{ marginTop: '10px' }} size='small' /* progressDot={customDot} */>
+                  <Steps.Step status="finish"  icon={<Icon type="user" />} title={'申请人：' + (this.state.applicant ? this.state.applicant : '没有数据！') + '[' + (data ? moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  hh:mm') : '没有数据！') + ']'} />
                   {this.state.timeList}
-                  <Steps.Step title='已结束' description='已结束' />
+                  {this.state.waitList}
+                  <Steps.Step status={this.state.status} icon={<Icon type="check-circle" />} title='已结束' description='已结束' />
 
                 </Steps>
               </Col>
@@ -745,23 +725,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             visible={this.state.visible}
           >
             <Form layout='vertical' >
-              {/* <Row gutter={16}>
-              <Col span={12}>
-                <Form.Item label='单位'>
-                  <label ></label>
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item label='类型'>
-
-                  <Select placeholder='请选择类型'
-                  >
-                    {this.state.typeList}
-                  </Select>
-
-                </Form.Item>
-              </Col>
-            </Row> */}
               <Row gutter={16}>
                 <Col span={24}>
                   <Form.Item label="类型"  >
@@ -808,10 +771,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               <Row gutter={8}>
                 <Col span={24}>
                   <Form.Item label="审阅" >
-                    {/*  <Menu mode='horizontal' className={styles.menu} >
-                      <Menu.Item key='1' onClick={this.approveTypefn.bind(this, '办')}>办</Menu.Item>
-                      <Menu.Item key='2' onClick={this.approveTypefn.bind(this, '阅')}>阅</Menu.Item>
-                    </Menu> */}
                     <Tabs defaultActiveKey="1">
                       <TabPane tab="审阅" key="1">
                         <Select
