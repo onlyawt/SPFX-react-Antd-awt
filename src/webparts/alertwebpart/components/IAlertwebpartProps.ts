@@ -1,3 +1,4 @@
 export interface IAlertwebpartProps {
-  description: string;
+  ApprovealListName: string;
+  ApprovealRecordListName:string;
 }

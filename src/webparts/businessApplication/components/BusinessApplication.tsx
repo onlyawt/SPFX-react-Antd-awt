@@ -826,11 +826,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             <Form layout='vertical' >
               <Row gutter={16}>
                 <Col span={24}>
-                  <Form.Item label="类型"  >
-                    <Radio.Group defaultValue="文档" buttonStyle="solid" value={this.state.itemType} onChange={this.handleChangetype} >
-                      <Radio.Button value="文档">文档</Radio.Button>
-                      <Radio.Button value="设备维修">设备维修</Radio.Button>
-                      <Radio.Button value="计算机耗材申请">计算机耗材申请</Radio.Button>
+                  <Form.Item label='类型'  >
+                    <Radio.Group defaultValue='1' buttonStyle='solid' value={this.state.itemType} onChange={this.handleChangetype} >
+                      <Radio.Button value='1'>默认</Radio.Button>
+                      <Radio.Button value="IT服务申请">IT服务申请</Radio.Button>
                       <Radio.Button value="其他">其他</Radio.Button>
                     </Radio.Group>
                   </Form.Item>

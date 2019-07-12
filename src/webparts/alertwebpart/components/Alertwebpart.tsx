@@ -61,7 +61,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
 
   private showModal = (row, index, key) => {
     console.log(this.state.defaultFiletext);
-    console.log(key)
+    console.log(this.props.ApprovealListName)
     this.approvlaContent(row);
     this.state.defaultFiletext.splice(0);
     this.timeLine(row.ApproveID);
@@ -73,13 +73,44 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
       menuKey:key,
     });
   }
-  private handleOk = (key,id) => {
+  private handleOk = async (key,id) => {
+    let readUsersId = [];
+    if(this.state.itemContent == null){
+      this.setState({itemContent:'已审阅'})
+    }
     this.setState({
-      processVisible: true,
-      id:id,
-      menuKey:key,
-      itemContent:null,
+      loading: true
     });
+    let createUser =await sp.web.currentUser.get()
+    console.log(createUser.Id)
+    let currentUser = await sp.web.lists.getByTitle('业务申请').items.getById(id).get();
+    let appId = currentUser.ApproveID;
+    readUsersId = currentUser.ReadUsersId;
+    readUsersId.push(createUser.Id)
+    console.log(readUsersId)
+    await sp.web.lists.getByTitle('业务申请').items.getById(id).update({
+      ReadUsersId: {
+        results: readUsersId,
+      },
+    }).then(console.log);
+    setTimeout(async () => {
+    await sp.web.lists.getByTitle('业务申请审阅记录表').items.add({
+      Title:'审批意见',
+      Content:this.state.itemContent,
+      ApproveID:appId,
+      ApprovalState:'阅读传阅',
+      ItemId:appId.toString(),
+      CreateUserId:createUser.Id,
+    }).then(console.log).catch(console.log),2000});
+    setTimeout(() => {
+      this.setState({
+        loading: false,
+        processVisible: false,
+        visible: false,
+        menuKey:key,
+      });
+    }, 2000);
+    this.getApprove(this.state.menuKey)
   }
 
   private handleCancel = () => {
@@ -101,8 +132,10 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
     this.setState({
       applicant: userName,
     });
-    for (let i = 0; i < ele.CCUserId.length; i++) {
-      name = await sp.web.getUserById(ele.CCUserId[i]).get();
+    let sb = new Set(ele.ReadUsersId);
+    let minus = ele.CCUserId.filter(x => !sb.has(x));
+    for (let i = 0; i < minus.length; i++) {
+      name = await sp.web.getUserById(minus[i]).get();
       cname[i] = name.Title+' ';
     }
     for (let i = 0; i < ele.ReadUsersId.length; i++) {
@@ -330,7 +363,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
               <Col span={14}>
                 <table>
                   <tr>
-                    <td>抄送人：</td>
+                    <td>待审阅：</td>
                     <td>{this.state.ccName}</td>
                   </tr>
                   <tr>
@@ -360,7 +393,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
                 </table>
                 <Divider></Divider>
                 <div style={{display:this.state.buttonState}}>
-                <Button  key='submit' type='primary' onClick={this.handleOk.bind(this,this.state.menuKey,this.state.id)} >审阅</Button>
+                <Button  key='submit' type='primary' onClick={this.handleOk.bind(this,this.state.menuKey,this.state.id)} style={{marginLeft:'50%'}}>审阅</Button>
                 </div>
               </Col>
               <Col span={10}>
@@ -372,7 +405,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
                 </Steps>
               </Col>
             </Row>
-            <Modal
+            {/* <Modal
               title='审阅'
               visible={this.state.processVisible}
               centered
@@ -395,7 +428,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
                 取消
               </Button>
               </div>
-            </Modal>
+            </Modal> */}
           </Modal>
         </div>
       </div>
