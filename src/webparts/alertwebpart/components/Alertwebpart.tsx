@@ -25,7 +25,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
     modalText: null, // 对话框标题
     loading: false,
     itemContent: null, // 添加正文
-    ID:null, // 审批ID
+    id:null, //  审批ID
     menuKey:[],
   };
 
@@ -69,16 +69,16 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
     this.setState({
       selindex: index,
       visible: true,
-      ID: row.ID,
+      id:row.ID,
       menuKey:key,
     });
   }
-  private handleOk = (ele,key) => {
-    console.log(key)
+  private handleOk = (key,id) => {
     this.setState({
       processVisible: true,
-      ID:ele,
+      id:id,
       menuKey:key,
+      itemContent:null,
     });
   }
 
@@ -214,12 +214,8 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
   /**
  * 处理确定按钮
  */
-  public processOk = async (ele,key) => {
+  public processOk = async (key,id) => {
     let readUsersId = [];
-    let createdate = new Date();
-    let approve = createdate.getFullYear().toString() + createdate.getMonth().toString();
-    approve += createdate.getDay().toString() + createdate.getHours().toString() + createdate.getMinutes().toString()
-    approve += createdate.getSeconds().toString() + createdate.getMilliseconds().toString();
     if(this.state.itemContent == null){
       this.setState({itemContent:'已审阅'})
     }
@@ -228,11 +224,12 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
     });
     let createUser =await sp.web.currentUser.get()
     console.log(createUser.Id)
-    let currentUser = await sp.web.lists.getByTitle('业务申请').items.getById(ele).get();
+    let currentUser = await sp.web.lists.getByTitle('业务申请').items.getById(id).get();
+    let appId = currentUser.ApproveID;
     readUsersId = currentUser.ReadUsersId;
     readUsersId.push(createUser.Id)
     console.log(readUsersId)
-    await sp.web.lists.getByTitle('业务申请').items.getById(ele).update({
+    await sp.web.lists.getByTitle('业务申请').items.getById(id).update({
       ReadUsersId: {
         results: readUsersId,
       },
@@ -241,9 +238,9 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
     await sp.web.lists.getByTitle('业务申请审阅记录表').items.add({
       Title:'审批意见',
       Content:this.state.itemContent,
-      ApproveID:ele,
+      ApproveID:appId,
       ApprovalState:'阅读传阅',
-      ItemId:ele.toString(),
+      ItemId:appId.toString(),
       CreateUserId:createUser.Id,
     }).then(console.log).catch(console.log),2000});
     setTimeout(() => {
@@ -363,7 +360,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
                 </table>
                 <Divider></Divider>
                 <div style={{display:this.state.buttonState}}>
-                <Button  key='submit' type='primary' onClick={this.handleOk.bind(this,this.state.ID,this.state.menuKey)} >审阅</Button>
+                <Button  key='submit' type='primary' onClick={this.handleOk.bind(this,this.state.menuKey,this.state.id)} >审阅</Button>
                 </div>
               </Col>
               <Col span={10}>
@@ -390,12 +387,14 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
                   onChange={this.handleChangeContent}
                 />
               </div>
-              <Button style={{ marginLeft: '150px' }} key='submit' type='primary' loading={loading} onClick={this.processOk.bind(this,this.state.ID,this.state.menuKey)}>
+              <div style={{marginTop:'30px'}}>
+              <Button style={{ marginLeft: '150px' }} key='submit' type='primary' loading={loading} onClick={this.processOk.bind(this,this.state.menuKey,this.state.id)}>
                 确认
               </Button>
               <Button style={{ marginLeft: '15px' }} key='back' type='danger' onClick={this.processCancel}>
                 取消
               </Button>
+              </div>
             </Modal>
           </Modal>
         </div>
