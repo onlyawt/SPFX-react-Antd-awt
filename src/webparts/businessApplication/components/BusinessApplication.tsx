@@ -5,9 +5,9 @@ import 'antd/dist/antd.css';
 import { Tabs, Button, Table, Menu, Drawer, message, Form, Radio, Col, Row, Input, Select, Steps, Upload, Divider, Icon, Modal, Popover, Spin } from 'antd';
 import { sp, Items, AttachmentFileInfo } from '@pnp/sp';
 import * as moment from 'moment';
-
-
-
+import 'core-js/es6/array';
+import "es6-map/implement";
+import "core-js/modules/es6.array.find";
 import { ApproveListItem } from './ApproveListItem';
 import { IBusinessApplicationState } from './IBusinessApplicationState';
 import { SPUser } from '@microsoft/sp-page-context';
@@ -826,10 +826,11 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             <Form layout='vertical' >
               <Row gutter={16}>
                 <Col span={24}>
-                  <Form.Item label='类型'  >
-                    <Radio.Group defaultValue='1' buttonStyle='solid' value={this.state.itemType} onChange={this.handleChangetype} >
-                      <Radio.Button value='1'>默认</Radio.Button>
-                      <Radio.Button value="IT服务申请">IT服务申请</Radio.Button>
+                  <Form.Item label="类型"  >
+                    <Radio.Group defaultValue="文档" buttonStyle="solid" value={this.state.itemType} onChange={this.handleChangetype} >
+                      <Radio.Button value="文档">文档</Radio.Button>
+                      <Radio.Button value="设备维修">设备维修</Radio.Button>
+                      <Radio.Button value="计算机耗材申请">计算机耗材申请</Radio.Button>
                       <Radio.Button value="其他">其他</Radio.Button>
                     </Radio.Group>
                   </Form.Item>
