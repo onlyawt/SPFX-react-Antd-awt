@@ -1,12 +1,12 @@
 {
   "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
   "solution": {
-    "name": "helloworld-webpart-client-side-solution",
-    "id": "9d2a14b7-0819-4eb2-9e89-8c9aa826320d",
-    "version": "1.0.0.0",
+    "name": "ApproveWebParat",
+    "id": "9d2a14b7-0819-4eb2-9e89-8c9aa826320a",
+    "version": "1.0.0.1",
     "includeClientSideAssets": true
   },
   "paths": {
-    "zippedPackage": "solution/helloworld-webpart.sppkg"
+    "zippedPackage": "solution/ApproveWebParat.sppkg"
   }
 }
