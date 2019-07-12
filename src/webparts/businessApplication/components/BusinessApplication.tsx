@@ -45,6 +45,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     cButtonState:'inline-block', // 处理按钮状态
     tButtonState:'inline-block', // 退回按钮状态
     gButtonState:'inline-block', // 归档按钮状态
+    ID:null, // 当前一条ID
   }
 
   private upload_file = [];// 上传附件
@@ -61,7 +62,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         <Popover placement='right' content={<div>
           <p>标题：{row.Title}</p>
           <p>申请人：{this.state.applicant}</p>
-          <p>申请时间：{moment(row.createTime).format('YYYY-MM-DD hh:mm')}</p>
+          <p>申请时间：{moment(row.createTime).format('YYYY-MM-DD HH:mm')}</p>
         </div>} >
           <a onClick={this.showModal.bind(this, row, index)} id='buttonck' className={styles.titlestyle} onMouseOver={this.approvlaContent.bind(this, row)}>
             {text}</a>
@@ -128,6 +129,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     this.waitLine(row);
     this.getFile(row.Id);
     this.setState({
+      ID: row.ID,
       selindex: index,
       visible1: true,
     });
@@ -188,7 +190,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   //显示附件
   private async getFile(fileId) {
 
-    let item = sp.web.lists.getByTitle("审批").items.getById(fileId);
+    let item = sp.web.lists.getByTitle("业务申请").items.getById(fileId);
 
     // get all the attachments
     let fileName = await item.attachmentFiles.get()
@@ -280,13 +282,29 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   /**
    * 传阅确定按钮
    */
-  public CirculateOk = () => {
+  public CirculateOk = async (itemid) => {
+    console.log(itemid);
+    //let createUser =await sp.web.currentUser.get()
+    let currentUser = await sp.web.lists.getByTitle('业务申请').items.getById(itemid).get();
+    let CUserId = currentUser.CCUserId;
+    for(var i=0;i<this.state.nameListView.length;i++){
+      CUserId.push(this.state.nameListView[i])
+    }
+    console.log(this.state.nameListView)
+    //CUserId.push(createUser.Id)
+    console.log(CUserId)
+    sp.web.lists.getByTitle('业务申请 ').items.getById(itemid).update({
+      CCUserId: {
+        results: CUserId,
+      },
+    }).then(console.log);
     setTimeout(() => {
     this.setState({
-
+      
       CirculateVisible: false,
     });
   }, 2000);
+    message.success('传阅成功');
   }
   /**
    * 传阅取消按钮
@@ -303,7 +321,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       visible1: false
     });
     this.state.waitList=[];
-    this.state.status="wait"
+    //this.state.status="wait"
 
   }
   /**
@@ -450,10 +468,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     let Approval = null;
     sp.web.currentUser.get().then(current_user => {
       if (element.key == 1) {
-        Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime', false).get();
+        Approval = sp.web.lists.getByTitle('业务申请').items.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime', false).get();
       }
       else if (element.key == 2) {
-        Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUsersId eq ' + current_user.Id).orderBy('createTime', false).get();
+        Approval = sp.web.lists.getByTitle('业务申请').items.filter('ApprovalUsersId eq ' + current_user.Id).orderBy('createTime', false).get();
         this.setState({
           modalTitle: '已办',
           cButtonState:'none', // 处理按钮状态
@@ -462,13 +480,13 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         });
       }
       else if (element.key == 3) {
-        Approval = sp.web.lists.getByTitle('审批').items.filter('createUserId eq ' + current_user.Id).orderBy('createTime', false).get();
+        Approval = sp.web.lists.getByTitle('业务申请').items.filter('createUserId eq ' + current_user.Id).orderBy('createTime', false).get();
         this.setState({
           modalTitle: '我的发起',
         });
       }
       else {
-        Approval = sp.web.lists.getByTitle('审批').items.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime', false).get();
+        Approval = sp.web.lists.getByTitle('业务申请').items.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime', false).get();
       }
       Approval.then(items => {
         if (items.length > 0) {
@@ -490,7 +508,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   */
   public getPage(itemId) {
     let options = [];
-    sp.web.lists.getByTitle('审批').items.filter('ApproveID eq ' + itemId).getAll().then(items => {
+    sp.web.lists.getByTitle('业务申请').items.filter('ApproveID eq ' + itemId).getAll().then(items => {
       if (items.length > 0) {
         options[0] = items[0]['Title'];
         this.setState({
@@ -550,7 +568,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     const Line = [];
     const lineC = [];
 
-    let Items = await sp.web.lists.getByTitle('审批意见记录').items.filter(`${'ApprovalState'} ne '阅读传阅' and ${'ApproveID'} eq ${itemId}`).orderBy('CreateTime', true).get();
+    let Items = await sp.web.lists.getByTitle('业务申请审阅记录表').items.filter(`${'ApprovalState'} ne '阅读传阅' and ${'ApproveID'} eq ${itemId}`).orderBy('CreateTime', true).get();
     //console.log(Items);
     if (Items.length > 0) {
       var strname: string = '123';
@@ -561,23 +579,31 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           var msgT: string = Items[index]['Content'];
           var msg = this.optimizingData(msgT);
           // console.log(Items[index]['ApprovalState'])
-          if(Items[index]['ApprovalState']!="退回"){
-          Line.push(<Steps.Step status="finish" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm') + ']'}
-            description={'审批内容：' + msg} />);
+          if(Items[index]['ApprovalState']=="退回"){
+            Line.push(<Steps.Step icon={<Icon type="close-circle"/>}  status="error" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+            description={'审批内容：' + '已退回'} />);      
+          }
+          else if(Items[index]['ApprovalState']=="结束"){
+            Line.push(<Steps.Step icon={<Icon type="check-circle" />} status="finish" title={'归档人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+            description={'已结束'} />);
           }
           else{
-          Line.push(<Steps.Step icon={<Icon type="close-circle"/>}  status="error" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm') + ']'}
-            description={'审批内容：' + '已退回'} />);
+            Line.push(<Steps.Step status="finish" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+            description={'审批内容：' + msg} />);
           }
         }
         else {
-          if(Items[index]['ApprovalState']!="退回"){
-          Line.push(<Steps.Step status="finish" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm') + ']'}
-            description={'审批内容：' + '无审批意见'} />);
+          if(Items[index]['ApprovalState']=="退回"){
+            Line.push(<Steps.Step icon={<Icon type="close-circle"/>}  status="error" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+            description={'审批内容：' + '已退回'} />);
+          }
+          else if(Items[index]['ApprovalState']=="结束"){
+            Line.push(<Steps.Step icon={<Icon type="check-circle" />} status="finish" title={'归档人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+            description={'已结束'} />);
           }
           else{
-          Line.push(<Steps.Step icon={<Icon type="close-circle"/>}  status="error" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm') + ']'}
-            description={'审批内容：' + '已退回'} />);
+            Line.push(<Steps.Step status="finish" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+            description={'审批内容：' + '无审批意见'} />);    
           }
         }
         lineC.push(Items[index]['Content']);  
@@ -609,7 +635,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       let Approvalname = await sp.web.getUserById(waitText['ApprovalUserStringId']).get();
       var strname:string = Approvalname.Title;
       //console.log(waitText.ApprovalUserStringId);
-    Linewait.push(<Steps.Step status="process" icon={<Icon type="loading" />} title={'当前处理人：' + strname + '[' + moment(waitText['CreateTime']).format('YYYY-MM-DD  hh:mm') + ']'}
+    Linewait.push(<Steps.Step status="process" icon={<Icon type="loading" />} title={'当前处理人：' + strname + '[' + moment(waitText['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
             description={'审批内容：' + '待审批...'} />);
     }
     else{
@@ -636,7 +662,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     return (
 
       <div className={styles.businessApplication}>
-        <div>
+        
           <Menu mode='horizontal' defaultSelectedKeys={['1']} >
             <Menu.Item key='1' onClick={this.getPageList.bind(this)}>待办</Menu.Item>
             <Menu.Item key='2' onClick={this.getPageList.bind(this)}>已办</Menu.Item>
@@ -710,10 +736,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               </Col>
               <Col span={10}>
                 <Steps direction="vertical" style={{ marginTop: '10px' }} size='small' /* progressDot={customDot} */>
-                  <Steps.Step status="finish"  icon={<Icon type="user" />} title={'申请人：' + (this.state.applicant ? this.state.applicant : '没有数据！') + '[' + (data ? moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  hh:mm') : '没有数据！') + ']'} />
+                  <Steps.Step status="finish"  icon={<Icon type="user" />} title={'申请人：' + (this.state.applicant ? this.state.applicant : '没有数据！') + '[' + (data ? moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  HH:mm') : '没有数据！') + ']'} />
                   {this.state.timeList}
                   {this.state.waitList}
-                  <Steps.Step status={this.state.status} icon={<Icon type="check-circle" />} title='已结束' description='已结束' />
+                  {/* <Steps.Step style={{}} status={'wait'} icon={<Icon type="check-circle" />} title='未结束'/> */}
 
                 </Steps>
               </Col>
@@ -795,14 +821,14 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                   notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
                   filterOption={false}
                   onSearch={this.fetchUser}
-                  onChange={this.handleChange}
-                  style={{ width: '100%' }}
+                  onChange={this.handleValueView}
+                  style={{ width: '100%' ,marginBottom:'20px'}}
                 >
                   {this.state.people_data.map(t => (
                     <Select.Option key={t.value}>{t.text}</Select.Option>
                   ))}
                 </Select>
-                <Button style={{ marginLeft: '150px' }} key='submit' type='primary' onClick={this.CirculateOk}>
+                <Button style={{ marginLeft: '150px' }} key='submit' type='primary' onClick={this.CirculateOk.bind(this,this.state.ID)}>
                   确认
           </Button>
                 <Button style={{ marginLeft: '15px' }} key='back' type='danger' onClick={this.CirculateCancel}>
@@ -836,8 +862,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               <Row gutter={16}>
                 <Col span={24}>
                   <Form.Item label="标题"  >
-
-                    <input value={this.state.itemTitle} onChange={this.handleChangeTitle} className={styles.inputCWe} />
+                    {/* <input className={styles.antinput} value={this.state.itemTitle} onChange={this.handleChangeTitle} /> */}
+                    <Input.TextArea rows={1} value={this.state.itemTitle} onChange={this.handleChangeTitle} placeholder="请输入标题" className={styles.textalign} />
                   </Form.Item>
                 </Col>
               </Row>
@@ -928,7 +954,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             </div>
           </Drawer>
 
-        </div>
+        
         {/* <div className={styles.tablewid}>
           <Menu mode='horizontal' defaultSelectedKeys={['1']} >
             <Menu.Item key='1' onClick={this.getApprove.bind(this)}>待阅</Menu.Item>
