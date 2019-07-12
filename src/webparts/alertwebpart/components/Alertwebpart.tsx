@@ -25,6 +25,8 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
     modalText: null, // 对话框标题
     loading: false,
     itemContent: null, // 添加正文
+    ID:null, // 审批ID
+    menuKey:[],
   };
 
   constructor(props) {
@@ -45,7 +47,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
           <p>申请人：{this.state.applicant}</p>
           <p>申请时间：{moment(row.createTime).format('YYYY-MM-DD hh:mm')}</p>
         </div>} >
-          <a onClick={this.showModal.bind(this, row, index)} id='buttonck' className={styles.titlestyle} onMouseOver={this.approvlaContent.bind(this, row)}>
+          <a onClick={this.showModal.bind(this, row, index, this.state.menuKey)} id='buttonck' className={styles.titlestyle} onMouseOver={this.approvlaContent.bind(this, row)}>
             {text}</a>
         </Popover>,
     },
@@ -57,8 +59,9 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
     }
   ];
 
-  private showModal = (row, index) => {
+  private showModal = (row, index, key) => {
     console.log(this.state.defaultFiletext);
+    console.log(key)
     this.approvlaContent(row);
     this.state.defaultFiletext.splice(0);
     this.timeLine(row.ApproveID);
@@ -66,11 +69,16 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
     this.setState({
       selindex: index,
       visible: true,
+      ID: row.ID,
+      menuKey:key,
     });
   }
-  private handleOk = () => {
+  private handleOk = (ele,key) => {
+    console.log(key)
     this.setState({
       processVisible: true,
+      ID:ele,
+      menuKey:key,
     });
   }
 
@@ -126,7 +134,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
   private async getFile(fileId) {
     console.log(this.state.defaultFiletext);
 
-    let item = sp.web.lists.getByTitle('审批').items.getById(fileId);
+    let item = sp.web.lists.getByTitle('业务申请').items.getById(fileId);
 
     // get all the attachments
     let fileName = await item.attachmentFiles.get();
@@ -152,25 +160,28 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
  * 'ReadUsersId eq ' + currentUser.Id
  */
   private getApprove(element) {
+    console.log('1');
+    console.log(element)
     this.setState({
       selindex: 0,
       buttonState: 'block',
       modalTitle: '审阅',
+      menuKey:element,
     });
     let ccuser = null;
     sp.web.currentUser.get().then(currentUser => {
       if (element.key == 1) {
-        ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} ne ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime', false).get();
+        ccuser = sp.web.lists.getByTitle('业务申请').items.filter(`${'ReadUsersId'} ne ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime', false).get();
       }
       else if (element.key == 2) {
-        ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} eq ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime', false).get();
+        ccuser = sp.web.lists.getByTitle('业务申请').items.filter(`${'ReadUsersId'} eq ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime', false).get();
         this.setState({
           modalTitle: '已审阅',
           buttonState: 'none',
         });
       }
       else {
-        ccuser = sp.web.lists.getByTitle('审批').items.filter(`${'ReadUsersId'} ne ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime', false).get();
+        ccuser = sp.web.lists.getByTitle('业务申请').items.filter(`${'ReadUsersId'} ne ${currentUser.Id} and ${'CCUserId'} eq ${currentUser.Id}`).orderBy('createTime', false).get();
       }
       ccuser.then(Items => {
         if (Items.length > 0) {
@@ -203,21 +214,48 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
   /**
  * 处理确定按钮
  */
-  public processOk = (ele) => {
+  public processOk = async (ele,key) => {
+    let readUsersId = [];
+    let createdate = new Date();
+    let approve = createdate.getFullYear().toString() + createdate.getMonth().toString();
+    approve += createdate.getDay().toString() + createdate.getHours().toString() + createdate.getMinutes().toString()
+    approve += createdate.getSeconds().toString() + createdate.getMilliseconds().toString();
     if(this.state.itemContent == null){
       this.setState({itemContent:'已审阅'})
     }
     this.setState({
       loading: true
     });
+    let createUser =await sp.web.currentUser.get()
+    console.log(createUser.Id)
+    let currentUser = await sp.web.lists.getByTitle('业务申请').items.getById(ele).get();
+    readUsersId = currentUser.ReadUsersId;
+    readUsersId.push(createUser.Id)
+    console.log(readUsersId)
+    await sp.web.lists.getByTitle('业务申请').items.getById(ele).update({
+      ReadUsersId: {
+        results: readUsersId,
+      },
+    }).then(console.log);
+    setTimeout(async () => {
+    await sp.web.lists.getByTitle('业务申请审阅记录表').items.add({
+      Title:'审批意见',
+      Content:this.state.itemContent,
+      ApproveID:ele,
+      ApprovalState:'阅读传阅',
+      ItemId:ele.toString(),
+      CreateUserId:createUser.Id,
+    }).then(console.log).catch(console.log),2000});
     setTimeout(() => {
       this.setState({
         loading: false,
         processVisible: false,
         visible: false,
+        menuKey:key,
       });
     }, 2000);
-    setTimeout(()=>console.log(this.state.itemContent),2000)
+    console.log(this.state.menuKey);
+    this.getApprove(this.state.menuKey)
   }
 
   /**
@@ -325,7 +363,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
                 </table>
                 <Divider></Divider>
                 <div style={{display:this.state.buttonState}}>
-                <Button  key='submit' type='primary' onClick={this.handleOk} >审阅</Button>
+                <Button  key='submit' type='primary' onClick={this.handleOk.bind(this,this.state.ID,this.state.menuKey)} >审阅</Button>
                 </div>
               </Col>
               <Col span={10}>
@@ -352,7 +390,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
                   onChange={this.handleChangeContent}
                 />
               </div>
-              <Button style={{ marginLeft: '150px' }} key='submit' type='primary' loading={loading} onClick={this.processOk.bind(this,data[this.state.selindex])}>
+              <Button style={{ marginLeft: '150px' }} key='submit' type='primary' loading={loading} onClick={this.processOk.bind(this,this.state.ID,this.state.menuKey)}>
                 确认
               </Button>
               <Button style={{ marginLeft: '15px' }} key='back' type='danger' onClick={this.processCancel}>
