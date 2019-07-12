@@ -2,7 +2,7 @@ import * as React from 'react';
 import styles from './Alertwebpart.module.scss';
 import { IAlertwebpartProps } from './IAlertwebpartProps';
 import { escape } from '@microsoft/sp-lodash-subset';
-import { Modal, Button, Input, Table, Menu, Popover, Row, Col, Steps, Upload, Divider} from 'antd';
+import { Modal, Button, Input, Table, Menu, Popover, Row, Col, Steps, Upload, Divider } from 'antd';
 import 'antd/dist/antd.css';
 import { sp } from '@pnp/sp';
 import * as moment from 'moment';
@@ -25,8 +25,8 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
     modalText: null, // 对话框标题
     loading: false,
     itemContent: null, // 添加正文
-    id:null, //  审批ID
-    menuKey:[],
+    id: null, //  审批ID
+    menuKey: [],
   };
 
   constructor(props) {
@@ -69,19 +69,19 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
     this.setState({
       selindex: index,
       visible: true,
-      id:row.ID,
-      menuKey:key,
+      id: row.ID,
+      menuKey: key,
     });
   }
-  private handleOk = async (key,id) => {
+  private handleOk = async (key, id) => {
     let readUsersId = [];
-    if(this.state.itemContent == null){
-      this.setState({itemContent:'已审阅'})
+    if (this.state.itemContent == null) {
+      this.setState({ itemContent: '已审阅' })
     }
     this.setState({
       loading: true
     });
-    let createUser =await sp.web.currentUser.get()
+    let createUser = await sp.web.currentUser.get()
     // console.log(createUser.Id)
     let currentUser = await sp.web.lists.getByTitle(this.props.ApprovealListName).items.getById(id).get();
     let appId = currentUser.ApproveID;
@@ -92,24 +92,20 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
       ReadUsersId: {
         results: readUsersId,
       },
-    }).then(console.log);
+    });
     setTimeout(async () => {
-    await sp.web.lists.getByTitle(this.props.ApprovealRecordListName).items.add({
-      Title:'审批意见',
-      Content:this.state.itemContent,
-      ApproveID:appId,
-      ApprovalState:'阅读传阅',
-      ItemId:appId.toString(),
-      CreateUserId:createUser.Id,
-    }).then(console.log).catch(console.log),2000});
-    setTimeout(() => {
-      this.setState({
+      await sp.web.lists.getByTitle(this.props.ApprovealRecordListName).items.add({
+        Title: '审批意见',
+        Content: this.state.itemContent,
+        ApproveID: appId,
+        ApprovalState: '阅读传阅',
+        ItemId: appId.toString(),
+        CreateUserId: createUser.Id,
+      }); this.setState({
         loading: false,
-        processVisible: false,
         visible: false,
-        menuKey:key,
-      });
-    }, 2000);
+      }), 500
+    });
     this.getApprove(this.state.menuKey)
   }
 
@@ -136,11 +132,11 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
     let minus = ele.CCUserId.filter(x => !sb.has(x));
     for (let i = 0; i < minus.length; i++) {
       name = await sp.web.getUserById(minus[i]).get();
-      cname[i] = name.Title+' ';
+      cname[i] = name.Title + ' ';
     }
     for (let i = 0; i < ele.ReadUsersId.length; i++) {
       name = await sp.web.getUserById(ele.ReadUsersId[i]).get();
-      rname[i] = name.Title+' ';
+      rname[i] = name.Title + ' ';
     }
     this.setState({
       readName: rname,
@@ -197,7 +193,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
       selindex: 0,
       buttonState: 'block',
       modalTitle: '审阅',
-      menuKey:element,
+      menuKey: element,
     });
     let ccuser = null;
     sp.web.currentUser.get().then(currentUser => {
@@ -240,20 +236,20 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
   //添加窗口正文
   handleChangeContent(event) {
     this.setState({ itemContent: event.target.value });
-  }  
+  }
 
   /**
  * 处理确定按钮
  */
-  public processOk = async (key,id) => {
+  public processOk = async (key, id) => {
     let readUsersId = [];
-    if(this.state.itemContent == null){
-      this.setState({itemContent:'已审阅'})
+    if (this.state.itemContent == null) {
+      this.setState({ itemContent: '已审阅' })
     }
     this.setState({
       loading: true
     });
-    let createUser =await sp.web.currentUser.get()
+    let createUser = await sp.web.currentUser.get()
     // console.log(createUser.Id)
     let currentUser = await sp.web.lists.getByTitle(this.props.ApprovealListName).items.getById(id).get();
     let appId = currentUser.ApproveID;
@@ -266,20 +262,21 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
       },
     }).then(console.log);
     setTimeout(async () => {
-    await sp.web.lists.getByTitle(this.props.ApprovealRecordListName).items.add({
-      Title:'审批意见',
-      Content:this.state.itemContent,
-      ApproveID:appId,
-      ApprovalState:'阅读传阅',
-      ItemId:appId.toString(),
-      CreateUserId:createUser.Id,
-    }).then(console.log).catch(console.log),2000});
+      await sp.web.lists.getByTitle(this.props.ApprovealRecordListName).items.add({
+        Title: '审批意见',
+        Content: this.state.itemContent,
+        ApproveID: appId,
+        ApprovalState: '阅读传阅',
+        ItemId: appId.toString(),
+        CreateUserId: createUser.Id,
+      }).then(console.log).catch(console.log), 2000
+    });
     setTimeout(() => {
       this.setState({
         loading: false,
         processVisible: false,
         visible: false,
-        menuKey:key,
+        menuKey: key,
       });
     }, 2000);
     // console.log(this.state.menuKey);
@@ -390,8 +387,8 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
                   </tbody>
                 </table>
                 <Divider></Divider>
-                <div style={{display:this.state.buttonState}}>
-                <Button  key='submit' type='primary' loading={loading} onClick={this.handleOk.bind(this,this.state.menuKey,this.state.id)} style={{marginLeft:'50%'}}>审阅</Button>
+                <div style={{ display: this.state.buttonState }}>
+                  <Button key='submit' type='primary' loading={loading} onClick={this.handleOk.bind(this, this.state.menuKey, this.state.id)} style={{ marginLeft: '50%' }}>审阅</Button>
                 </div>
               </Col>
               <Col span={10}>
