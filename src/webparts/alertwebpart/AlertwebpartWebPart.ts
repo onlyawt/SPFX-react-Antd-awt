@@ -6,71 +6,38 @@ import {
   IPropertyPaneConfiguration,
   PropertyPaneTextField
 } from '@microsoft/sp-webpart-base';
-import {
-  sp
-} from '@pnp/sp';
+import { sp } from '@pnp/sp';
 import * as strings from 'AlertwebpartWebPartStrings';
 import Alertwebpart from './components/Alertwebpart';
 import { IAlertwebpartProps } from './components/IAlertwebpartProps';
 
 export interface IAlertwebpartWebPartProps {
-  description: string;
+  ApprovealListName: string;
+  ApprovealRecordListName:string;
 }
 
 export default class AlertwebpartWebPart extends BaseClientSideWebPart<IAlertwebpartWebPartProps> {
+
+  public onInit(): Promise<void> {
+
+    return super.onInit().then(_ => {
+      sp.setup({
+        spfxContext: this.context
+      });
+    });
+  }
 
   public render(): void {
     const element: React.ReactElement<IAlertwebpartProps> = React.createElement(
       Alertwebpart,
       {
-        description: this.properties.description
+        ApprovealListName:this.properties.ApprovealListName,
+        ApprovealRecordListName:this.properties.ApprovealRecordListName
       }
     );
 
     ReactDom.render(element, this.domElement);
-    // this.showItems();
-    // this.showxinxi();
-    // this.bindButtonEvent();
-    // this.ButtonEvent();
-
-
   }
-  // private bindButtonEvent() {
-  //   const webpart: AlertwebpartWebPart = this;
-  //   this.domElement.querySelector('#select1').addEventListener('change', () => { webpart.showxinxi(); });
-  // }
-
-
-  // private ButtonEvent() {
-  //   const webpart: AlertwebpartWebPart = this;
-  //   this.domElement.querySelector('#buttonck').addEventListener('click', () => { webpart.clickEvent(); });
-  // }
-  // private clickEvent() {
-  //   const webpart: AlertwebpartWebPart = this;
-  //   this.domElement.querySelector('Modal').addEventListener('onload', () => { webpart.showalert(); });
-  // }
-  // private showalert(): void {
-  //   const itemsDom2: Element = this.domElement.querySelector('#select2');
-  //   sp.web.lists.getByTitle('新项目测试数据').items.get().then(items => {
-  //     itemsDom2.innerHTML += `${items.map(i => `<Option value='${i.Title}'>${i.Title}</Option>`).join('')}`;
-  //   });
-  // }
-  
-  // private showItems(): void {
-  //   const itemsDom: Element = this.domElement.querySelector('#select1');
-  //   sp.web.lists.getByTitle('新项目测试数据').items.get().then(items => {
-  //     itemsDom.innerHTML += `${items.map(i => `<Option value='${i.Title}'>${i.Title}</Option>`).join('')}`;
-  //   });
-  // }
-  // private showxinxi(): void {
-  //   const itemsDom: HTMLInputElement = <HTMLInputElement>this.domElement.querySelector('#select1');
-  //    // const obj: string=itemsDom.nodeValue;
-  //   const createshowxinxi: Element = this.domElement.querySelector('#showxinxi');
-  //   const newshowxinxi: string =itemsDom.value;
-  //   console.log(newshowxinxi + '1');
-  //   createshowxinxi.innerHTML = newshowxinxi;
-
-  // }
   protected onDispose(): void {
     ReactDom.unmountComponentAtNode(this.domElement);
   }
@@ -90,8 +57,11 @@ export default class AlertwebpartWebPart extends BaseClientSideWebPart<IAlertweb
             {
               groupName: strings.BasicGroupName,
               groupFields: [
-                PropertyPaneTextField('description', {
-                  label: strings.DescriptionFieldLabel
+                PropertyPaneTextField('ApprovealListName', {
+                  label: "审批列表库名称"
+                }),
+                PropertyPaneTextField('ApprovealRecordListName', {
+                  label: "审批意见列表库名称"
                 })
               ]
             }
