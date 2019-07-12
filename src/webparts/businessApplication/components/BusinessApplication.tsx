@@ -27,10 +27,11 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     strusername: null,
     itemTitle: null,
     adata: null,
-    itemContent: null, //添加正文
+    itemContent: null, // 添加正文
     itemType: null,// 添加类型
     processVisible: false,// 处理
-    modalText: null,// 模态框内容
+    backVisible:false,// 退回
+    fileVisible:false,// 归档
     CirculateVisible: false,// 传阅
     people_data: [],
     people_fetching: false,
@@ -137,6 +138,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   private last_fetch_id;
 
   private fetchUser = value => {
+    console.log(value)
     this.last_fetch_id += 1;
     const fetch_id = this.last_fetch_id;
     this.setState({ people_data: [], people_fetching: true });
@@ -230,13 +232,61 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     this.setState({ processVisible: false });
   }
   /**
+   * 退回确定按钮
+   */
+  public backOk = () => {
+    this.setState({
+      loading: true
+    });
+    setTimeout(() => {
+      this.setState({
+        loading: false,
+        backVisible: false,
+        visible1: false,
+      });
+    }, 2000);
+    this.state.waitList=[];
+  }
+  /**
+   * 退回取消按钮
+   */
+
+  public backCancel = () => {
+    this.setState({ backVisible: false });
+  }
+  /**
+   * 归档确定按钮
+   */
+  public fileOk = () => {
+    this.setState({
+      loading: true
+    });
+    setTimeout(() => {
+      this.setState({
+        loading: false,
+        fileVisible: false,
+        visible1: false,
+      });
+    }, 2000);
+    this.state.waitList=[];
+  }
+  /**
+   * 归档取消按钮
+   */
+
+  public fileCancel = () => {
+    this.setState({ fileVisible: false });
+  }
+  /**
    * 传阅确定按钮
    */
   public CirculateOk = () => {
+    setTimeout(() => {
     this.setState({
 
       CirculateVisible: false,
     });
+  }, 2000);
   }
   /**
    * 传阅取消按钮
@@ -261,12 +311,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    */
   public handleOk = (e) => {
     this.setState({
-      modalText: <div>
-        <Input.TextArea
-          placeholder="同意"
-          autosize={{ minRows: 2, maxRows: 6 }}
-        />
-      </div>,
       processVisible: true,
     });
   }
@@ -275,8 +319,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    */
   public handleCancel = () => {
     this.setState({
-      modalText: <div>是否确认退回</div>,
-      processVisible: true
+      backVisible: true
     });
   }
   /**
@@ -284,31 +327,15 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    */
   public File = () => {
     this.setState({
-      modalText: <div>是否确认归档'</div>,
-      processVisible: true
+      fileVisible: true
     });
   }
   /**
    * 传阅按钮
    */
   public Circulate = () => {
-    this.setState({
-      modalText: <Select
-        mode="multiple"
-        labelInValue
-        placeholder="选择需要传阅的人"
-        notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
-        filterOption={false}
-        onSearch={this.fetchUser}
-        onChange={this.handleChange}
-        style={{ width: '100%' }}
-      >
 
-        {console.log(this.state.people_data)}
-        {this.state.people_data.map(t => (
-          <Select.Option key={t.value}>{t.text}</Select.Option>
-        ))}
-      </Select>,
+    this.setState({
       CirculateVisible: true
     });
   };
@@ -690,7 +717,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
                 </Steps>
               </Col>
-              {/* 按钮模态框 */}
+              {/* 处理模态框 */}
               <Modal
                 title="处理"
                 visible={this.state.processVisible}
@@ -698,11 +725,58 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                 footer={null}
                 onCancel={this.processCancel}
               >
-                {this.state.modalText}
+                <div>
+                  <Input.TextArea
+                    placeholder="同意"
+                    autosize={{ minRows: 2, maxRows: 6 }}
+                  />
+                </div>
                 <Button style={{ marginLeft: '150px' }} key='submit' type='primary' loading={loading} onClick={this.processOk}>
                   确认
           </Button>
                 <Button style={{ marginLeft: '15px' }} key='back' type='danger' onClick={this.processCancel}>
+                  取消
+          </Button>
+              </Modal>
+              {/* 退回模态框 */}
+              <Modal
+                title="退回"
+                visible={this.state.backVisible}
+                centered
+                footer={null}
+                onCancel={this.backCancel}
+              >
+                <div>
+                  <Input.TextArea
+                    placeholder="同意"
+                    autosize={{ minRows: 2, maxRows: 6 }}
+                  />
+                </div>
+                <Button style={{ marginLeft: '150px' }} key='submit' type='primary' loading={loading} onClick={this.backOk}>
+                  确认
+          </Button>
+                <Button style={{ marginLeft: '15px' }} key='back' type='danger' onClick={this.backCancel}>
+                  取消
+          </Button>
+              </Modal>
+              {/* 归档模态框 */}
+              <Modal
+                title="归档"
+                visible={this.state.fileVisible}
+                centered
+                footer={null}
+                onCancel={this.fileCancel}
+              >
+                <div>
+                  <Input.TextArea
+                    placeholder="同意"
+                    autosize={{ minRows: 2, maxRows: 6 }}
+                  />
+                </div>
+                <Button style={{ marginLeft: '150px' }} key='submit' type='primary' loading={loading} onClick={this.fileOk}>
+                  确认
+          </Button>
+                <Button style={{ marginLeft: '15px' }} key='back' type='danger' onClick={this.fileCancel}>
                   取消
           </Button>
               </Modal>
@@ -714,7 +788,20 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                 footer={null}
                 onCancel={this.CirculateCancel}
               >
-                {this.state.modalText}
+                <Select
+                  mode="multiple"
+                  labelInValue
+                  placeholder="选择需要传阅的人"
+                  notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
+                  filterOption={false}
+                  onSearch={this.fetchUser}
+                  onChange={this.handleChange}
+                  style={{ width: '100%' }}
+                >
+                  {this.state.people_data.map(t => (
+                    <Select.Option key={t.value}>{t.text}</Select.Option>
+                  ))}
+                </Select>
                 <Button style={{ marginLeft: '150px' }} key='submit' type='primary' onClick={this.CirculateOk}>
                   确认
           </Button>
