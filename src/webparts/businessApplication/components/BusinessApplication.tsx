@@ -327,7 +327,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     console.log(this.state.nameListView)
     //CUserId.push(createUser.Id)
     console.log(CUserId)
-    sp.web.lists.getByTitle('业务申请 ').items.getById(itemid).update({
+    sp.web.lists.getByTitle('业务申请').items.getById(itemid).update({
       CCUserId: {
         results: CUserId,
       },
