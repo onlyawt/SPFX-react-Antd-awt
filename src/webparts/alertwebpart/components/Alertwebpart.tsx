@@ -105,7 +105,8 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
         ApprovalState: '阅读传阅',
         ItemId: appId.toString(),
         CreateUserId: createUser.Id,
-      }); this.setState({
+      }); 
+      this.setState({
         loading: false,
         visible: false,
       }), 500
@@ -231,12 +232,17 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
   /**
  * 处理多行文本 
  */
-  public optimizingData(strDate): string {
-    let msg = strDate.replace(/<\/?[^>]*>/g, ''); // 去除HTML Tag
-    msg = msg.replace(/[|]*\n/, ''); // 去除行尾空格
-    msg = msg.replace(/&npsp;/ig, ''); // 去掉npsp
-    return msg;
-  }
+public optimizingData(strDate): string {
+  if(strDate!=null){
+  var msg = strDate.replace(/<\/?[^>]*>/g, ''); //去除HTML Tag
+  msg = msg.replace(/[|]*\n/, '') //去除行尾空格
+  msg = msg.replace(/&npsp;/ig, ''); //去掉npsp    
+  return msg;
+}
+else{
+  return null;
+}
+}
   //添加窗口正文
   handleChangeContent(event) {
     this.setState({ itemContent: event.target.value });
@@ -264,7 +270,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
       ReadUsersId: {
         results: readUsersId,
       },
-    }).then(console.log);
+    })
     setTimeout(async () => {
       await sp.web.lists.getByTitle(this.props.ApprovealRecordListName).items.add({
         Title: '审批意见',
@@ -273,7 +279,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
         ApprovalState: '阅读传阅',
         ItemId: appId.toString(),
         CreateUserId: createUser.Id,
-      }).then(console.log).catch(console.log), 2000
+      }), 2000
     });
     setTimeout(() => {
       this.setState({
