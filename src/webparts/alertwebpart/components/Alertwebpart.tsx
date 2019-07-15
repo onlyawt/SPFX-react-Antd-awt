@@ -2,7 +2,7 @@ import * as React from 'react';
 import styles from './Alertwebpart.module.scss';
 import { IAlertwebpartProps } from './IAlertwebpartProps';
 import { escape } from '@microsoft/sp-lodash-subset';
-import { Modal, Button, Input, Table, Menu, Popover, Row, Col, Steps, Upload, Divider } from 'antd';
+import { Modal, Button, Input, Table, Menu, Popover, Row, Col, Steps, Upload, Divider, Icon } from 'antd';
 import 'antd/dist/antd.css';
 import { sp } from '@pnp/sp';
 import * as moment from 'moment';
@@ -27,6 +27,9 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
     itemContent: null, // 添加正文
     id: null, //  审批ID
     menuKey: [],
+    status:"wait",
+    waitList:null,//待审批
+    lineContent: null,// 初始化时间轴内容
   };
 
   constructor(props) {
@@ -47,7 +50,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
           <p>申请人：{this.state.applicant}</p>
           <p>申请时间：{moment(row.createTime).format('YYYY-MM-DD hh:mm')}</p>
         </div>} >
-          <a onClick={this.showModal.bind(this, row, index, this.state.menuKey)} id='buttonck' className={styles.titlestyle} onMouseOver={this.approvlaContent.bind(this, row)}>
+          <a onClick={this.showModal.bind(this, row, index)} id='buttonck' className={styles.titlestyle} onMouseOver={this.approvlaContent.bind(this, row)}>
             {text}</a>
         </Popover>,
     },
@@ -59,21 +62,22 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
     }
   ];
 
-  private showModal = (row, index, key) => {
+  private showModal = (row, index) => {
     // console.log(this.state.defaultFiletext);
     // console.log(this.props.ApprovealListName)
     this.approvlaContent(row);
+    console.log(this.state.menuKey)
     this.state.defaultFiletext.splice(0);
     this.timeLine(row.ApproveID);
+    this.waitLine(row);
     this.getFile(row.Id);
     this.setState({
       selindex: index,
       visible: true,
       id: row.ID,
-      menuKey: key,
     });
   }
-  private handleOk = async (key, id) => {
+  private handleOk = async ( id) => {
     let readUsersId = [];
     if (this.state.itemContent == null) {
       this.setState({ itemContent: '已审阅' })
@@ -291,49 +295,99 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
   }
 
   /**
-*模态框 步骤页面渲染
-*/
-  public async timeLine(ID) {
-    let id = ID;
-    // console.log(id);
-    let itemId = id; // 打断数据传输
-    const Line = [];
-    const lineC = [];
+ *模态框 步骤页面渲染
+ */
+public async timeLine(ID) {
+  var id = ID;
+  //console.log(id);
+  var itemId = id;//打断数据传输
+  //console.log(itemId);
+  const Line = [];
+  const lineC = [];
 
-    let Items = await sp.web.lists.getByTitle('审批意见记录').items.filter('ApproveID eq ' + itemId).orderBy('CreateTime', true).get();
-    // console.log(Items);
-    if (Items.length > 0) {
-      let strname: string = '123';
-      for (let index = 0; index < Items.length; index++) {
-        let username = await sp.web.getUserById(Items[index]['CreateUserStringId']).get();
-        strname = username.Title;
-        if (Items[index]['Content'] != null) {
-          let msgT: string = Items[index]['Content'];
-          let msg = this.optimizingData(msgT);
-          Line.push(<Steps.Step title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm') + ']'}
-            description={'审批意见：' + msg} />);
+  let Items = await sp.web.lists.getByTitle('业务申请审阅记录表').items.filter(`${'ApprovalState'} ne '阅读传阅' and ${'ApproveID'} eq ${itemId}`).orderBy('CreateTime', true).get();
+  //console.log(Items);
+  if (Items.length > 0) {
+    var strname: string = '123';
+    for (let index = 0; index < Items.length; index++) {
+      let username = await sp.web.getUserById(Items[index]['CreateUserStringId']).get();
+      strname = username.Title;
+      if (Items[index]['Content'] != null) {
+        var msgT: string = Items[index]['Content'];
+        var msg = this.optimizingData(msgT);
+        // console.log(Items[index]['ApprovalState'])
+        if(Items[index]['ApprovalState']=="退回"){
+          Line.push(<Steps.Step icon={<Icon type="close-circle"/>}  status="error" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+          description={'审批内容：' + '已退回'} />);      
         }
-        else {
-          Line.push(<Steps.Step title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  hh:mm') + ']'}
-            description={'审批意见：' + '无审批意见'} />);
+        else if(Items[index]['ApprovalState']=="结束"){
+          Line.push(<Steps.Step icon={<Icon type="check-circle" />} status="finish" title={'归档人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+          description={'已结束'} />);
         }
-        lineC.push(Items[index]['Content']);
-
+        else{
+          Line.push(<Steps.Step status="finish" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+          description={'审批内容：' + msg} />);
+        }
       }
-
-      this.setState({
-        timeList: Line,
-        lineContent: lineC,
-
-      });
+      else {
+        if(Items[index]['ApprovalState']=="退回"){
+          Line.push(<Steps.Step icon={<Icon type="close-circle"/>}  status="error" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+          description={'审批内容：' + '已退回'} />);
+        }
+        else if(Items[index]['ApprovalState']=="结束"){
+          Line.push(<Steps.Step icon={<Icon type="check-circle" />} status="finish" title={'归档人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+          description={'已结束'} />);
+        }
+        else{
+          Line.push(<Steps.Step status="finish" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+          description={'审批内容：' + '无审批意见'} />);    
+        }
+      }
+      lineC.push(Items[index]['Content']);  
     }
-    else {
-      this.setState({
-        timeList: null
-      });
 
-    }
+    this.setState({
+      timeList: Line,
+      lineContent: lineC,
+
+    });
   }
+  else {
+    this.setState({
+      timeList: null
+    })
+
+  }
+}
+/**
+ * 时间轴中待审批
+ */
+public waitLine = async (waitText)=>{
+  //console.log(waitText);
+  //let Items = await sp.web.lists.getByTitle('审批').items.filter('Id eq ' + Id).orderBy('CreateTime', true).get();
+  const Linewait = [];
+  
+  
+  if(waitText.ApprovalUserStringId!=null){
+    let Approvalname = await sp.web.getUserById(waitText['ApprovalUserStringId']).get();
+    var strname:string = Approvalname.Title;
+    //console.log(waitText.ApprovalUserStringId);
+  Linewait.push(<Steps.Step status="process" icon={<Icon type="loading" />} title={'当前处理人：' + strname + '[' + moment(waitText['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+          description={'审批内容：' + '待审批...'} />);
+  }
+  else{
+    this.state.status="finish",
+    //console.log(this.state.status);
+    Linewait.push(null);
+  }
+  this.setState({
+    waitList: Linewait,
+  });
+  //console.log(this.state.waitList);
+}
+/**
+ * 
+ */
 
   public render(): React.ReactElement<IAlertwebpartProps> {
 
@@ -388,14 +442,15 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
                 </table>
                 <Divider></Divider>
                 <div style={{ display: this.state.buttonState }}>
-                  <Button key='submit' type='primary' loading={loading} onClick={this.handleOk.bind(this, this.state.menuKey, this.state.id)} style={{ marginLeft: '50%' }}>审阅</Button>
+                  <Button key='submit' type='primary' loading={loading} onClick={this.handleOk.bind(this,  this.state.id)} style={{ marginLeft: '50%' }}>审阅</Button>
                 </div>
               </Col>
               <Col span={10}>
-                <Steps direction='vertical' style={{ marginTop: '10px' }} current={2} status='finish' size='small' /* progressDot={customDot} */>
-                  <Steps.Step title={'申请人：' + (this.state.applicant ? this.state.applicant : '没有数据！') + '[' + (data ? moment(data[0].createTime).format('YYYY-MM-DD  hh:mm') : '没有数据！') + ']'} />
+              <Steps direction="vertical" style={{ marginTop: '10px' }} size='small' /* progressDot={customDot} */>
+                  <Steps.Step status="finish"  icon={<Icon type="user" />} title={'申请人：' + (this.state.applicant ? this.state.applicant : '没有数据！') + '[' + (data ? moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  HH:mm') : '没有数据！') + ']'} />
                   {this.state.timeList}
-                  <Steps.Step title='已结束' description='已结束' />
+                  {this.state.waitList}
+                  {/* <Steps.Step style={{}} status={'wait'} icon={<Icon type="check-circle" />} title='未结束'/> */}
 
                 </Steps>
               </Col>
