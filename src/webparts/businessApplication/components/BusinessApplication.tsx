@@ -30,7 +30,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     strusername: null,
     itemTitle: null,
     adata: null,
-    menuKey:null,//切换页面
+    menuKey:1,//切换页面
     itemContent: null, // 添加正文
     fileContent:null,// 归档意见
     itemType: null,// 添加类型
@@ -141,7 +141,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       selindex: index,
       visible1: true,
     });
-    if(this.state.menuKey.key == 3){
+    if(this.state.menuKey == 3){
       if(row.ApprovalUserId != null){
         this.setState({
           cButtonState:'inline-block', // 处理按钮状态
@@ -319,6 +319,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         visible1: false,
       });
     }, 500);
+    console.log(this.state.menuKey)
     this.getPageList(this.state.menuKey);
     this.state.waitList=[];
   }
@@ -542,20 +543,21 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 传入菜单项的key值
    * */
   private getPageList(element) {
+    let pageKey=element.key
     this.setState({
       selindex: 0,
       modalTitle: '待办',
       cButtonState:'inline-block', // 处理按钮状态
       tButtonState:'inline-block', // 退回按钮状态
       gButtonState:'inline-block', // 归档按钮状态  
-      menuKey:element,
+      menuKey:pageKey,
     });
     let Approval = null;
     sp.web.currentUser.get().then(current_user => {
-      if (element.key == 1) {
+      if (pageKey == 1) {
         Approval = sp.web.lists.getByTitle('业务申请').items.filter('ApprovalUserId eq ' + current_user.Id).orderBy('createTime', false).get();
       }
-      else if (element.key == 2) {
+      else if (pageKey == 2) {
         Approval = sp.web.lists.getByTitle('业务申请').items.filter('ApprovalUsersId eq ' + current_user.Id).orderBy('createTime', false).get();
         this.setState({
           modalTitle: '已办',
@@ -564,7 +566,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           gButtonState:'none', // 归档按钮状态      
         });
       }
-      else if (element.key == 3) {
+      else if (pageKey == 3) {
         Approval = sp.web.lists.getByTitle('业务申请').items.filter('createUserId eq ' + current_user.Id).orderBy('createTime', false).get();
         this.setState({
           modalTitle: '我的发起',
@@ -942,10 +944,9 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               <Row gutter={16}>
                 <Col span={24}>
                   <Form.Item label="类型"  >
-                    <Radio.Group defaultValue="文档" buttonStyle="solid" value={this.state.itemType} onChange={this.handleChangetype} >
-                      <Radio.Button value="文档">文档</Radio.Button>
-                      <Radio.Button value="设备维修">设备维修</Radio.Button>
-                      <Radio.Button value="计算机耗材申请">计算机耗材申请</Radio.Button>
+                    <Radio.Group defaultValue="默认" buttonStyle="solid" value={this.state.itemType} onChange={this.handleChangetype} >
+                      <Radio.Button value="默认">默认</Radio.Button>
+                      <Radio.Button value="IT服务申请">IT服务申请</Radio.Button>
                       <Radio.Button value="其他">其他</Radio.Button>
                     </Radio.Group>
                   </Form.Item>
