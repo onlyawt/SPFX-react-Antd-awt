@@ -141,6 +141,22 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       selindex: index,
       visible1: true,
     });
+    if(this.state.menuKey.key == 3){
+      if(row.ApprovalUserId != null){
+        this.setState({
+          cButtonState:'inline-block', // 处理按钮状态
+          tButtonState:'none', // 退回按钮状态
+          gButtonState:'inline-block', // 归档按钮状态  
+            });
+      }
+      else {
+        this.setState({
+          cButtonState:'none', // 处理按钮状态
+          tButtonState:'none', // 退回按钮状态
+          gButtonState:'none', // 归档按钮状态      
+        })
+      }
+    }
   }
   /**
    * 人员选取组件

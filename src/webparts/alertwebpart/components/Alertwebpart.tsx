@@ -66,7 +66,6 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
     // console.log(this.state.defaultFiletext);
     // console.log(this.props.ApprovealListName)
     this.approvlaContent(row);
-    console.log(this.state.menuKey)
     this.state.defaultFiletext.splice(0);
     this.timeLine(row.ApproveID);
     this.waitLine(row);
