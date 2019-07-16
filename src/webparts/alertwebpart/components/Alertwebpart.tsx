@@ -62,14 +62,14 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
     }
   ];
 
-  private showModal = (row, index) => {
+  private showModal = async (row, index) => {
     // console.log(this.state.defaultFiletext);
     // console.log(this.props.ApprovealListName)
     this.approvlaContent(row);
     this.state.defaultFiletext.splice(0);
     this.timeLine(row.ApproveID);
     this.waitLine(row);
-    this.getFile(row.Id);
+    await this.getFile(row.Id);
     this.setState({
       selindex: index,
       visible: true,
@@ -439,7 +439,7 @@ public waitLine = async (waitText)=>{
                     <tr style={{ lineHeight: '40px' }}>
                       <td>附件</td>
                       <td>
-                        <Upload defaultFileList={this.state.defaultFiletext ? this.state.defaultFiletext : null}>
+                        <Upload showUploadList={{showRemoveIcon: false}} defaultFileList={this.state.defaultFiletext ? this.state.defaultFiletext : null}>
                         </Upload>
                       </td>
                     </tr>
