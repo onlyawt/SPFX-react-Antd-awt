@@ -447,7 +447,7 @@ public waitLine = async (waitText)=>{
                 </table>
                 <Divider></Divider>
                 <div style={{ display: this.state.buttonState }}>
-                  <Button key='submit' type='primary' loading={loading} onClick={this.handleOk.bind(this,  this.state.id)} style={{ marginLeft: '50%' }}>审阅</Button>
+                  <Button key='submit' type='primary' loading={loading} onClick={this.handleOk.bind(this,  this.state.id)} style={{ marginLeft: '50%' }}>已阅</Button>
                 </div>
               </Col>
               <Col span={10}>
