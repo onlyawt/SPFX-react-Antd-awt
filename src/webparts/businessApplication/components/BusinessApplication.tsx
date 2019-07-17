@@ -538,12 +538,21 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
 
   //添加窗口标题
-  handleChangeTitle(event) {
-    this.setState({ 
+  async handleChangeTitle(event) {
+    if(event.target.value!=''){
+    await this.setState({ 
       itemTitle: event.target.value,
       validateStatus:null,// 表单状态
       help:null,// 表单校验文案
     });
+    }
+    else{
+    await this.setState({ 
+      itemTitle: null,
+      validateStatus:null,// 表单状态
+      help:null,// 表单校验文案
+      });
+    }
   }
   //添加窗口正文
   handleChangeContent(event) {
@@ -917,7 +926,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
           {/* 显示数据和进度 */}
           <Modal
-            width={800}
+            width={'50%'}
             visible={visible1}
             title={this.state.modalTitle}
             centered
@@ -929,7 +938,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
               {/* <div>{dataList.ApproveID}</div> */}
 
-              <Col span={14} >
+              <Col xs={24} lg={14} >
                 <span style={{ fontSize: '20px' }}>审批信息</span>
                 <Button style={{ float: 'right' }} key='Circulate' type='primary' onClick={this.Circulate}>
                   传阅
@@ -965,18 +974,18 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                   </tbody>
                 </table>
 
-                <Button style={{ marginLeft: '80px',display:this.state.cButtonState}} key='submit' type='primary' onClick={this.handleOk}>
+                <Button style={{ marginLeft: '18%',display:this.state.cButtonState}} key='submit' type='primary' onClick={this.handleOk}>
                   处理
           </Button>
-                <Button style={{ marginLeft: '15px' ,display:this.state.tButtonState}} key='back' type='danger' onClick={this.handleCancel}>
+                <Button style={{ marginLeft: '10px' ,display:this.state.tButtonState}} key='back' type='danger' onClick={this.handleCancel}>
                   退回
           </Button>
-                <Button style={{ marginLeft: '15px' ,display:this.state.gButtonState}} key='File' onClick={this.File}>
+                <Button style={{ marginLeft: '10px' ,display:this.state.gButtonState}} key='File' onClick={this.File}>
                   归档
           </Button>
 
               </Col>
-              <Col span={10}>
+              <Col xs={24} lg={10}>
                 <Steps direction="vertical" style={{ marginTop: '10px' }} size='small' /* progressDot={customDot} */>
                   <Steps.Step status="finish"  icon={<Icon type="user" />} title={'申请人：' + (this.state.applicant ? this.state.applicant : '没有数据！') + '[' + (data ? moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  HH:mm') : '没有数据！') + ']'} />
                   {this.state.timeList}

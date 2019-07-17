@@ -413,7 +413,7 @@ public handleChange() {
           </Menu>
           <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={data} size='small' pagination={{ pageSize: 5 }} />
           <Modal
-            width={800}
+            width={'50%'}
             title={this.state.modalTitle}
             visible={visible}
             centered
@@ -421,7 +421,7 @@ public handleChange() {
             footer={null}
           >
             <Row gutter={24}>
-              <Col span={14}>
+            <Col xs={24} lg={14} >
                 <table>
                   <tr>
                     <td>待审阅：</td>
@@ -454,10 +454,10 @@ public handleChange() {
                 </table>
                 <Divider></Divider>
                 <div style={{ display: this.state.buttonState }}>
-                  <Button key='submit' type='primary' loading={loading} onClick={this.handleOk.bind(this,  this.state.id)} style={{ marginLeft: '50%' }}>已阅</Button>
+                  <Button key='submit' type='primary' loading={loading} onClick={this.handleOk.bind(this,  this.state.id)} style={{ marginLeft: '35%' }}>已阅</Button>
                 </div>
               </Col>
-              <Col span={10}>
+              <Col xs={24} lg={10}>
               <Steps direction="vertical" style={{ marginTop: '10px' }} size='small' /* progressDot={customDot} */>
                   <Steps.Step status="finish"  icon={<Icon type="user" />} title={'申请人：' + (this.state.applicant ? this.state.applicant : '没有数据！') + '[' + (data ? moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  HH:mm') : '没有数据！') + ']'} />
                   {this.state.timeList}
