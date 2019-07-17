@@ -6,7 +6,6 @@ import { Modal, Button, Input, Table, Menu, Popover, Row, Col, Steps, Upload, Di
 import 'antd/dist/antd.css';
 import 'core-js/es6/array';
 import "es6-map/implement";
-import 'es6-shim';
 import "core-js/modules/es6.array.find";
 import { sp } from '@pnp/sp';
 import * as moment from 'moment';

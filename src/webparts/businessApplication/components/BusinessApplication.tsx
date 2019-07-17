@@ -8,7 +8,6 @@ import * as moment from 'moment';
 import 'core-js/es6/array';
 import "es6-map/implement";
 import "core-js/modules/es6.array.find";
-import 'es6-shim';
 import { ApproveListItem } from './ApproveListItem';
 import { IBusinessApplicationState } from './IBusinessApplicationState';
 import { SPUser } from '@microsoft/sp-page-context';
