@@ -31,6 +31,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     itemTitle: null,
     adata: null,
     menuKey:1,//切换页面
+    validateStatus:null,// 表单状态
+    help:null,// 表单校验文案
+    validateStatus_1:null,// 表单状态
+    help_1:null,// 表单校验文案
     itemContent: null, // 添加正文
     fileContent:null,// 归档意见
     backContent:null,// 退回意见
@@ -98,7 +102,11 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   /**
    * 获取审阅下拉框的数据
    */
-  public handleValue = (value) => {    
+  public handleValue = (value) => {  
+    this.setState({ 
+      validateStatus_1:null,// 表单状态
+      help_1:null,// 表单校验文案
+    }); 
     var userid:number =value.key;
     this.state.nameList=userid;
   }
@@ -274,6 +282,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         ItemId: appId.toString(),
         CreateUserId: createUser.Id,
       }); 
+      message.success(`已处理`);
       this.fileAdd(itemid);
       this.setState({
         loading: false,
@@ -311,6 +320,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           ItemId: appId.toString(),
           CreateUserId: createUser.Id,
         }); 
+        message.success(`已处理`);
         this.fileAdd(itemid);
         this.setState({
           loading: false,
@@ -364,6 +374,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         ItemId: appId.toString(),
         CreateUserId: createUser.Id,
       }); 
+      message.success(`已退回`);
       this.setState({
         loading: false,
         backVisible: false,
@@ -414,12 +425,14 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         ItemId: appId.toString(),
         CreateUserId: createUser.Id,
       }); 
+      message.success(`已归档`);
       this.setState({
         loading: false,
         fileVisible: false,
         visible1: false,
       });
     }, 500);
+    
     console.log(this.state.menuKey)
     this.getPageList(this.state.menuKey);
     this.state.waitList=[];
@@ -455,8 +468,9 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       
       CirculateVisible: false,
     });
-  }, 2000);
     message.success('传阅成功');
+  }, 500);
+    
   }
   /**
    * 传阅取消按钮
@@ -524,7 +538,11 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
   //添加窗口标题
   handleChangeTitle(event) {
-    this.setState({ itemTitle: event.target.value });
+    this.setState({ 
+      itemTitle: event.target.value,
+      validateStatus:null,// 表单状态
+      help:null,// 表单校验文案
+    });
   }
   //添加窗口正文
   handleChangeContent(event) {
@@ -551,6 +569,26 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
   //添加Item数据
   public itemAdd() {
+    console.log(this.state.nameList);
+    console.log(this.state.itemTitle);
+    if(this.state.itemTitle==null){
+      this.setState({
+        validateStatus:'error',
+        help:'标题不可为空',
+      });
+      message.error(`保存失败`);
+      return false;    
+    }
+    else if(this.state.nameList==null)
+    {
+      this.setState({
+        validateStatus_1:'error',
+        help_1:'审批人不可为空',
+      });
+      message.error(`保存失败`);
+      return false;   
+    }
+    else{
     const hide = message.loading(`正在保存文件`);
     var createdate = new Date();
     var approve = createdate.getFullYear().toString() + createdate.getMonth().toString();
@@ -582,6 +620,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           this.fileAdd(d.Id);
           message.success(`保存成功`);
           this.setState({
+            validateStatus:null,// 表单状态
+            help:null,// 表单校验文案
+            validateStatus_1:null,// 表单状态
+            help_1:null,// 表单校验文案
             visible: false,
           });
           this.upload_file = [];
@@ -615,6 +657,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             this.fileAdd(d.Id);
             message.success(`保存成功`);
             this.setState({
+              validateStatus:null,// 表单状态
+              help:null,// 表单校验文案
+              validateStatus_1:null,// 表单状态
+              help_1:null,// 表单校验文案
               visible: false,
             });
             this.upload_file = [];
@@ -625,7 +671,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         });
       });
     }
-
+  }
   }
   // 初始化办、阅人员选择内容;aid 标签状态1办，2是阅
   public approveTypefn(aid, event) {
@@ -1081,7 +1127,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               </Row>
               <Row gutter={16}>
                 <Col span={24}>
-                  <Form.Item label="标题"  >
+                  <Form.Item label="标题"  validateStatus={this.state.validateStatus} help={this.state.help}>
                     {/* <input className={styles.antinput} value={this.state.itemTitle} onChange={this.handleChangeTitle} /> */}
                     <Input.TextArea rows={1} value={this.state.itemTitle} onChange={this.handleChangeTitle} placeholder="请输入标题" className={styles.textalign} />
                   </Form.Item>
@@ -1112,7 +1158,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               </Row>
               <Row gutter={8}>
                 <Col span={24}>
-                  <Form.Item label="审阅" >
+                  <Form.Item label="审阅" validateStatus={this.state.validateStatus_1} help={this.state.help_1}>
                     <Tabs defaultActiveKey="1">
                       <TabPane tab="审阅" key="1">
                         <Select
