@@ -413,7 +413,7 @@ public handleChange() {
           </Menu>
           <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={data} size='small' pagination={{ pageSize: 5 }} />
           <Modal
-           // width={'50%'}
+            //width={'50%'}
             title={this.state.modalTitle}
             visible={visible}
             centered

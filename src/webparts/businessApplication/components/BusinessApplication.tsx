@@ -200,6 +200,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 获取附件
    */
   uploadOnChange = (info) => {
+    console.log(info)
     this.upload_file=[];
       for(var i=0;i<info.fileList.length;i++){
       this.upload_file.push(info.fileList[i]);
@@ -219,10 +220,12 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     for (var i = 0; i < this.upload_file.length; i++) {
       fileInfos.push({
         name: this.upload_file[i].name,
-        content: this.upload_file[i],
+        content: this.upload_file[i].originFileObj,
       });
     }
+    console.log(fileInfos)
     list.items.getById(itemid).attachmentFiles.addMultiple(fileInfos).then(r => {
+      console.log(r)
     });
   }
   //显示附件
@@ -243,7 +246,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         response: 'Server Error 500',
         url: fileName[key].ServerRelativeUrl,
       });
-
       this.state.iFNUM--;
     }
     console.log(this.state.defaultFiletext);
@@ -700,7 +702,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 传入菜单项的key值
    * */
   private getPageList(element) {
-    console.log(element);
+    //console.log(element);
     let pageKey=element
     this.setState({
       selindex: 0,
