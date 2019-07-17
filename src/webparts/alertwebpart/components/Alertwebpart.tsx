@@ -4,6 +4,10 @@ import { IAlertwebpartProps } from './IAlertwebpartProps';
 import { escape } from '@microsoft/sp-lodash-subset';
 import { Modal, Button, Input, Table, Menu, Popover, Row, Col, Steps, Upload, Divider, Icon } from 'antd';
 import 'antd/dist/antd.css';
+import 'core-js/es6/array';
+import "es6-map/implement";
+import 'es6-shim';
+import "core-js/modules/es6.array.find";
 import { sp } from '@pnp/sp';
 import * as moment from 'moment';
 

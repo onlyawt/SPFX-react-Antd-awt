@@ -8,6 +8,7 @@ import * as moment from 'moment';
 import 'core-js/es6/array';
 import "es6-map/implement";
 import "core-js/modules/es6.array.find";
+import 'es6-shim';
 import { ApproveListItem } from './ApproveListItem';
 import { IBusinessApplicationState } from './IBusinessApplicationState';
 import { SPUser } from '@microsoft/sp-page-context';
@@ -217,6 +218,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   public fileAdd(itemid) {
     const list = sp.web.lists.getByTitle(this.props.ApprovealListName);
     let fileInfos: AttachmentFileInfo[] = [];
+    
     for (var i = 0; i < this.upload_file.length; i++) {
       fileInfos.push({
         name: this.upload_file[i].name,
@@ -1121,7 +1123,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
           <Drawer
             title='提交业务申请'
-            width={580}
+            width={'50%'}
             style={{ marginBottom: 0 }}
             onClose={this.onClose}
             visible={this.state.visible}
