@@ -58,6 +58,9 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     gButtonState:'inline-block', // 归档按钮状态
     ID:null, // 当前一条ID
     current:null,
+    Cvalue:[],
+    Svalue:[],
+    upfile:[],
   }
 
   private upload_file = [];// 上传附件
@@ -107,6 +110,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     this.setState({ 
       validateStatus_1:null,// 表单状态
       help_1:null,// 表单校验文案
+      Svalue:value,
     }); 
     var userid:number =value.key;
     this.state.nameList=userid;
@@ -115,6 +119,9 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 获取传阅下拉框的数据
    */
   public handleValueView = (value) => {
+    this.setState({
+      Cvalue:value,
+    })
     const usageView = value.map(value => ({
       id: value.key,
     }));
@@ -133,8 +140,18 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    */
   private onClose = () => {
     this.setState({
-      visible: false
-    });
+      visible: false,
+      validateStatus:null,// 表单状态
+      help:null,// 表单校验文案
+      validateStatus_1:null,// 表单状态
+      help_1:null,// 表单校验文案
+      itemTitle:null,
+      itemContent:null,
+      itemType:null,
+      Cvalue:[],
+      Svalue:[],
+      upfile:[],
+});
   }
   /**
    * 显示弹出层(当前数据id)
@@ -180,7 +197,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   private last_fetch_id;
 
   private fetchUser = value => {
-    console.log(value)
     this.last_fetch_id += 1;
     const fetch_id = this.last_fetch_id;
     this.setState({ people_data: [], people_fetching: true });
@@ -200,6 +216,9 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 获取附件
    */
   uploadOnChange = (info) => {
+    this.setState({
+      upfile:info.fileList
+    })
     this.upload_file=[];
       for(var i=0;i<info.fileList.length;i++){
       this.upload_file.push(info.fileList[i]);
@@ -579,8 +598,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
   //添加Item数据
   public itemAdd() {
-    console.log(this.state.nameList);
-    console.log(this.state.itemTitle);
     if(this.state.itemTitle==null){
       this.setState({
         validateStatus:'error',
@@ -635,6 +652,12 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             validateStatus_1:null,// 表单状态
             help_1:null,// 表单校验文案
             visible: false,
+            itemTitle:null,
+            itemContent:null,
+            itemType:null,
+            Cvalue:[],
+            Svalue:[],
+            upfile:[], 
           });
           this.upload_file = [];
           //this.state.nameList=[]
@@ -672,7 +695,13 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               validateStatus_1:null,// 表单状态
               help_1:null,// 表单校验文案
               visible: false,
-            });
+              itemTitle:null,
+              itemContent:null,
+              itemType:null,
+              Cvalue:[],
+              Svalue:[],
+              upfile:[], 
+              });
             this.upload_file = [];
             //this.state.nameList=[]
           });
@@ -700,7 +729,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 传入菜单项的key值
    * */
   private getPageList(element) {
-    console.log(element);
     let pageKey=element
     this.setState({
       selindex: 0,
@@ -1119,7 +1147,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
           <Drawer
             title='提交业务申请'
-            width={580}
+            width= '50%'
             style={{ marginBottom: 0 }}
             onClose={this.onClose}
             visible={this.state.visible}
@@ -1155,7 +1183,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               <Row gutter={8}>
                 <Col span={24}>
                   <Form.Item label='附件'>
-                    <Upload.Dragger onChange={this.uploadOnChange} multiple={true}>
+                    <Upload.Dragger onChange={this.uploadOnChange} multiple={true} fileList={this.state.upfile}>
                       {/*  <p className="ant-upload-drag-icon">
                      
                     </p> */}
@@ -1181,6 +1209,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                           onSearch={this.fetchUser}
                           onChange={this.handleValue}
                           style={{ width: '100%' }}
+                          value={this.state.Svalue}
                         >
                           {this.state.people_data.map(d => (
                             <Select.Option key={d.value}>{d.text}</Select.Option>
@@ -1197,6 +1226,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                           onSearch={this.fetchUser}
                           onChange={this.handleValueView}
                           style={{ width: '100%' }}
+                          value={this.state.Cvalue}
                         >
                           {this.state.people_data.map(d => (
                             <Select.Option key={d.value}>{d.text}</Select.Option>
