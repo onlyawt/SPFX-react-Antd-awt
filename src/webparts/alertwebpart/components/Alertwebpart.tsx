@@ -4,6 +4,9 @@ import { IAlertwebpartProps } from './IAlertwebpartProps';
 import { escape } from '@microsoft/sp-lodash-subset';
 import { Modal, Button, Input, Table, Menu, Popover, Row, Col, Steps, Upload, Divider, Icon } from 'antd';
 import 'antd/dist/antd.css';
+import 'core-js/es6/array';
+import "es6-map/implement";
+import "core-js/modules/es6.array.find";
 import { sp } from '@pnp/sp';
 import * as moment from 'moment';
 
@@ -413,12 +416,13 @@ public handleChange() {
           </Menu>
           <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={data} size='small' pagination={{ pageSize: 5 }} />
           <Modal
-            width={'50%'}
+            //width={'50%'}
             title={this.state.modalTitle}
             visible={visible}
             centered
             onCancel={this.handleCancel}
             footer={null}
+            className={styles.moderlWidth}
           >
             <Row gutter={24}>
             <Col xs={24} lg={14} >

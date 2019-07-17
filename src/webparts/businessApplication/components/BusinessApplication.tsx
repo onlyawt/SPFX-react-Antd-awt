@@ -235,13 +235,16 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   public fileAdd(itemid) {
     const list = sp.web.lists.getByTitle(this.props.ApprovealListName);
     let fileInfos: AttachmentFileInfo[] = [];
+    
     for (var i = 0; i < this.upload_file.length; i++) {
       fileInfos.push({
         name: this.upload_file[i].name,
-        content: this.upload_file[i],
+        content: this.upload_file[i].originFileObj,
       });
     }
+    console.log(fileInfos)
     list.items.getById(itemid).attachmentFiles.addMultiple(fileInfos).then(r => {
+      console.log(r)
     });
   }
   //显示附件
@@ -262,7 +265,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         response: 'Server Error 500',
         url: fileName[key].ServerRelativeUrl,
       });
-
       this.state.iFNUM--;
     }
     console.log(this.state.defaultFiletext);
@@ -1147,7 +1149,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
           <Drawer
             title='提交业务申请'
-            width= '50%'
+            width={'50%'}
             style={{ marginBottom: 0 }}
             onClose={this.onClose}
             visible={this.state.visible}
