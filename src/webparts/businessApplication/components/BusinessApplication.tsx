@@ -57,6 +57,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     tButtonState:'inline-block', // 退回按钮状态
     gButtonState:'inline-block', // 归档按钮状态
     ID:null, // 当前一条ID
+    current:null,
   }
 
   private upload_file = [];// 上传附件
@@ -699,6 +700,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       tButtonState:'inline-block', // 退回按钮状态
       gButtonState:'inline-block', // 归档按钮状态  
       menuKey:pageKey,
+      current:null,
     });
     let Approval = null;
     sp.web.currentUser.get().then(current_user => {
@@ -910,7 +912,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             <Button onClick={this.createItem.bind(this)} className={styles.applyb}>申请</Button>
           </Menu>
           <div>
-            <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={data} size='small' pagination={{ pageSize: 5 }} />
+            <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={data} size='small' pagination={{ pageSize: 5 ,current:this.state.current,onChange:(page)=>{this.setState({current:page,});},}} />
           </div>
 
           {/* 显示数据和进度 */}

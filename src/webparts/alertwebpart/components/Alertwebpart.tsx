@@ -62,14 +62,14 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
     }
   ];
 
-  private showModal = (row, index) => {
+  private showModal = async (row, index) => {
     // console.log(this.state.defaultFiletext);
     // console.log(this.props.ApprovealListName)
     this.approvlaContent(row);
     this.state.defaultFiletext.splice(0);
     this.timeLine(row.ApproveID);
     this.waitLine(row);
-    this.getFile(row.Id);
+    await this.getFile(row.Id);
     this.setState({
       selindex: index,
       visible: true,
@@ -233,7 +233,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
  */
 public optimizingData(strDate): string {
   if(strDate!=null){
-  var msg = strDate.replace(/<\/?[^>]*>/g, ''); //去除HTML Tag
+  var msg = strDate.replace(/<\/?[^>]*>/g,''); //去除HTML Tag
   msg = msg.replace(/[|]*\n/, '') //去除行尾空格
   msg = msg.replace(/&npsp;/ig, ''); //去掉npsp    
   return msg;
@@ -310,7 +310,7 @@ public async timeLine(ID) {
   const Line = [];
   const lineC = [];
 
-  let Items = await sp.web.lists.getByTitle('业务申请审阅记录表').items.filter(`${'ApprovalState'} ne '阅读传阅' and ${'ApproveID'} eq ${itemId}`).orderBy('CreateTime', true).get();
+  let Items = await sp.web.lists.getByTitle(this.props.ApprovealRecordListName).items.filter(`${'ApprovalState'} ne '阅读传阅' and ${'ApproveID'} eq ${itemId}`).orderBy('CreateTime', true).get();
   //console.log(Items);
   if (Items.length > 0) {
     var strname: string = '123';
@@ -323,7 +323,7 @@ public async timeLine(ID) {
         // console.log(Items[index]['ApprovalState'])
         if(Items[index]['ApprovalState']=="退回"){
           Line.push(<Steps.Step icon={<Icon type="close-circle"/>}  status="error" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
-          description={'审批内容：' + '已退回'} />);      
+          description={'审批内容：' + msg} />);      
         }
         else if(Items[index]['ApprovalState']=="结束"){
           Line.push(<Steps.Step icon={<Icon type="check-circle" />} status="finish" title={'归档人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
@@ -393,6 +393,12 @@ public waitLine = async (waitText)=>{
 /**
  * 
  */
+public handleChange() {
+  return false;
+}
+/**
+ * 
+ */
 
   public render(): React.ReactElement<IAlertwebpartProps> {
 
@@ -410,6 +416,7 @@ public waitLine = async (waitText)=>{
             width={800}
             title={this.state.modalTitle}
             visible={visible}
+            centered
             onCancel={this.handleCancel}
             footer={null}
           >
@@ -439,7 +446,7 @@ public waitLine = async (waitText)=>{
                     <tr style={{ lineHeight: '40px' }}>
                       <td>附件</td>
                       <td>
-                        <Upload defaultFileList={this.state.defaultFiletext ? this.state.defaultFiletext : null}>
+                        <Upload showUploadList={{showRemoveIcon: false}} defaultFileList={this.state.defaultFiletext ? this.state.defaultFiletext : null}>
                         </Upload>
                       </td>
                     </tr>
@@ -447,7 +454,7 @@ public waitLine = async (waitText)=>{
                 </table>
                 <Divider></Divider>
                 <div style={{ display: this.state.buttonState }}>
-                  <Button key='submit' type='primary' loading={loading} onClick={this.handleOk.bind(this,  this.state.id)} style={{ marginLeft: '50%' }}>审阅</Button>
+                  <Button key='submit' type='primary' loading={loading} onClick={this.handleOk.bind(this,  this.state.id)} style={{ marginLeft: '50%' }}>已阅</Button>
                 </div>
               </Col>
               <Col span={10}>

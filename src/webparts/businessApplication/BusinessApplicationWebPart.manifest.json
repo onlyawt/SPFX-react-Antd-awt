@@ -21,8 +21,8 @@
     "description": { "default": "业务申请web Part" },
     "officeFabricIconFontName": "Page",
     "properties": {
-      "ApprovealListName": "业务申请",
-      "ApprovealRecordListName":"业务申请审阅记录表"
+      "ApprovealListName": "审批",
+      "ApprovealRecordListName":"审批意见记录"
     }
   }]
 }

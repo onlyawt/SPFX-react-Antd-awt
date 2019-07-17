@@ -14,6 +14,7 @@ import { IAlertwebpartProps } from './components/IAlertwebpartProps';
 export interface IAlertwebpartWebPartProps {
   ApprovealListName: string;
   ApprovealRecordListName:string;
+  NumberPage:number;
 }
 
 export default class AlertwebpartWebPart extends BaseClientSideWebPart<IAlertwebpartWebPartProps> {
@@ -32,7 +33,8 @@ export default class AlertwebpartWebPart extends BaseClientSideWebPart<IAlertweb
       Alertwebpart,
       {
         ApprovealListName:this.properties.ApprovealListName,
-        ApprovealRecordListName:this.properties.ApprovealRecordListName
+        ApprovealRecordListName:this.properties.ApprovealRecordListName,
+        NumberPage:this.properties.NumberPage
       }
     );
 
@@ -66,7 +68,7 @@ export default class AlertwebpartWebPart extends BaseClientSideWebPart<IAlertweb
                 }),
                 PropertyPaneTextField('ApprovealRecordListName', {
                   label: "审批意见列表库名称"
-                })
+                }),
               ]
             }
           ]
