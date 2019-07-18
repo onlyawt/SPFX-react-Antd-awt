@@ -45,8 +45,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     backVisible:false,// 退回
     fileVisible:false,// 归档
     CirculateVisible: false,// 传阅
-    people_data: [],
+    people_data: [],// 审阅搜索
+    people_data_1:[],// 传阅搜索
     people_fetching: false,
+    people_fetching_1: false,
     defaultFiletext: [],
     nameList: null,
     nameListView:[],
@@ -122,21 +124,40 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   /**
    * 获取传阅下拉框的数据
    */
-  public handleValueView = (value) => {
+  public handleValueView = async (value) => {
     this.setState({
       Cvalue:value,
     })
     const usageView = value.map(value => ({
       id: value.key,
+      Title: value.label,
     }));
+    
     var k_1:number=usageView.length;
-    let nameli=[]
+    let nameli=[];
+    
     if(k_1!=0){
     for(var i=0;i<k_1;i++){
-      nameli[i]=Number(usageView[i].id);
+      if(usageView[i].Title.indexOf("CWE") != -1)
+      {
+        sp.web.lists.getByTitle('通讯录').items.filter("deptName eq '"+usageView[i].Title.substr(4)+"'").get().then(users => {
+        users.map((user,index) => {
+          if(user._x59d3__x540d_StringId!=null)
+          {
+          nameli.push(user._x59d3__x540d_StringId);
+            }
+         // nameli.push({user}.)
+           });
+      });
+      }
+     else
+       {
+       nameli.push(Number(usageView[i].id));
+       }
     }
     }
     else{nameli=[]}
+    console.log(nameli);
     this.state.nameListView=nameli;
   }
   /**
@@ -196,9 +217,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     }
   }
   /**
-   * 人员选取组件
+   * 审阅人员选取组件
    */
   private last_fetch_id;
+  private last_fetch_id_1;
 
   private fetchUser = value => {
     this.last_fetch_id += 1;
@@ -208,6 +230,15 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       if (fetch_id !== this.last_fetch_id) {
         return;
       }
+      console.log(users);
+      var a_test=/[0-9a-z]/i;
+      users=users.filter(function(elem){
+        if(a_test.test(elem.Title)){return false}
+        else{
+        return (elem.Title.indexOf("管理员")==-1);}
+      }
+      )
+      console.log(users);
       const people_data1 = users.map(user => ({
         text: user.Title,
         value: user.Id,
@@ -215,7 +246,34 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       this.setState({ people_data: people_data1, people_fetching: false });
     });
   };
+  //  传阅
+   private fetchUser_1 = value => {
+    console.log(123);
+    console.log(value);
+    // this.last_fetch_id_1 += 1;
+    // const fetch_id = this.last_fetch_id_1;
+    this.setState({ people_data_1: [], people_fetching_1: true });
+    sp.web.siteUsers.filter("substringof('" + value + "',Title) or substringof('" + value + "',LoginName)").get().then(users => {
+      console.log(users)
+      /* if (fetch_id !== this.last_fetch_id_1) {
+        return;
+      } */
+       var a_test=/[0-9a-z]/i;
+      users=users.filter(function(elem){
+        if(a_test.test(elem.Title)){return (elem.Title.indexOf('CWE')!=-1)}
+        else{
+        return (elem.Title.indexOf("管理员")==-1);}
+      }
+      ) 
+      console.log(users);
+      const people_data1 = users.map(user => ({
+        text: user.Title,
+        value: user.Id,
+      }));
 
+      this.setState({ people_data_1:people_data1, people_fetching_1: false });
+    });
+  };
   /**
    * 获取附件
    */
@@ -258,7 +316,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
     // get all the attachments
     let fileName = await item.attachmentFiles.get()
-
+    //console.log('http://bjweb/_layouts/15/WopiFrame.aspx?sourcedoc='+fileName[1].ServerRelativeUrl);  
+    console.log(fileName);  
 
     for (let key in fileName) {
 
@@ -267,11 +326,11 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         name: fileName[key].FileName,
         status: 'done',
         response: 'Server Error 500',
-        url: fileName[key].ServerRelativeUrl,
+        url:'http://bjweb/_layouts/15/WopiFrame.aspx?sourcedoc='+fileName[key].ServerRelativeUrl,
       });
       this.state.iFNUM--;
     }
-    console.log(this.state.defaultFiletext);
+    
   }
   //处理窗口正文
   public processChangeContent = (event) => {
@@ -902,7 +961,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             description={'已结束'} />);
           }
           else{
-            Line.push(<Steps.Step status="finish" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+            Line.push(<Steps.Step icon={<Icon type="check-circle" />} status="finish" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
             description={'审批内容：' + msg} />);
           }
         }
@@ -916,7 +975,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             description={'已结束'} />);
           }
           else{
-            Line.push(<Steps.Step status="finish" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+            Line.push(<Steps.Step icon={<Icon type="check-circle" />} status="finish" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
             description={'审批内容：' + '无审批意见'} />);    
           }
         }
@@ -949,7 +1008,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       let Approvalname = await sp.web.getUserById(waitText['ApprovalUserStringId']).get();
       var strname:string = Approvalname.Title;
       //console.log(waitText.ApprovalUserStringId);
-    Linewait.push(<Steps.Step status="process" icon={<Icon type="loading" />} title={'当前处理人：' + strname + '[' + moment(waitText['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+    Linewait.push(<Steps.Step icon={<Icon type="history"/>} status="finish"  title={'当前处理人：' + strname + '[' + moment(waitText['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
             description={'审批内容：' + '待审批...'} />);
     }
     else{
@@ -1080,7 +1139,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
               {/* <div>{dataList.ApproveID}</div> */}
 
-              <Col xs={24} lg={14} >
+              <Col xs={24} lg={13} >
                 <span style={{ fontSize: '20px' }}>审批信息</span>
                 <Button style={{ float: 'right' }} key='Circulate' type='primary' onClick={this.Circulate}>
                   传阅
@@ -1127,7 +1186,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           </Button>
 
               </Col>
-              <Col xs={24} lg={10}>
+              <Col xs={24} lg={11}>
                 <Steps direction="vertical" style={{ marginTop: '10px' }} size='small' /* progressDot={customDot} */>
                   <Steps.Step status="finish"  icon={<Icon type="user" />} title={'申请人：' + (this.state.applicant ? this.state.applicant : '没有数据！') + '[' + (data ? moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  HH:mm') : '没有数据！') + ']'} />
                   {this.state.timeList}
@@ -1239,14 +1298,14 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                   mode="multiple"
                   labelInValue
                   placeholder="选择需要传阅的人"
-                  notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
+                  notFoundContent={this.state.people_fetching_1 ? <Spin size="small" /> : null}
                   filterOption={false}
-                  onSearch={this.fetchUser}
+                  onSearch={this.fetchUser_1}
                   onChange={this.handleValueView}
                   style={{ width: '100%' ,marginBottom:'20px'}}
                   value={this.state.Cvalue}
                 >
-                  {this.state.people_data.map(t => (
+                  {this.state.people_data_1.map(t => (
                     <Select.Option key={t.value}>{t.text}</Select.Option>
                   ))}
                 </Select>
@@ -1337,14 +1396,14 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                           mode="multiple"
                           labelInValue
                           placeholder="请选择传阅人"
-                          notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
+                          notFoundContent={this.state.people_fetching_1 ? <Spin size="small" /> : null}
                           filterOption={false}
-                          onSearch={this.fetchUser}
+                          onSearch={this.fetchUser_1}
                           onChange={this.handleValueView}
                           style={{ width: '100%' }}
                           value={this.state.Cvalue}
                         >
-                          {this.state.people_data.map(d => (
+                          {this.state.people_data_1.map(d => (
                             <Select.Option key={d.value}>{d.text}</Select.Option>
                           ))}
                         </Select>

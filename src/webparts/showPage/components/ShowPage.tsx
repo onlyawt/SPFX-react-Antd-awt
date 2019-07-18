@@ -2,258 +2,74 @@ import * as React from 'react';
 import styles from './ShowPage.module.scss';
 import { IShowPageProps } from './IShowPageProps';
 import { escape } from '@microsoft/sp-lodash-subset';
-
+import 'antd/dist/antd.css';
+import { Upload, message, Button, Icon } from 'antd';
+import { sp,AttachmentFileInfo } from '@pnp/sp';
+// import { ConsoleListener, Web, Logger, LogLevel, ODataRaw } from "@pnp/sp";
+// import { auth } from "./auth";
 export default class ShowPage extends React.Component < IShowPageProps, {} > {
+   //declare var require: (s: string) => any;
+   state = {
+
+   }
+
+  //let $ = require("jquery");
+    
+  constructor(props) {
+    super(props);
+   
+    //this.getApprove(props);
+    this.fileAdd = this.fileAdd.bind(this);
+   
+   
+  }
+
+  private upload_file = [];// 上传附件
+  uploadOnChange = (info) => {
+    console.log(info)
+    this.upload_file=[];
+      for(var i=0;i<info.fileList.length;i++){
+      this.upload_file.push(info.fileList[i]);
+      }
+    if (info.file.status !== 'uploading') {
+    }
+    if (info.file.status === 'done') {     
+      message.success(`${info.file.name} 上传成功`);
+    } else if (info.file.status === 'error') {
+      message.error(`${info.file.name} file upload failed.`);
+    }
+  }
+  //添加附件
+  public fileAdd=()=> {
+    // const list = sp.web.lists.getByTitle(this.props.ApprovealListName);
+    let fileInfos: AttachmentFileInfo[] = [];
+    
+    for (var i = 0; i < this.upload_file.length; i++) {
+      fileInfos.push({
+        name: this.upload_file[i].name,
+        content: this.upload_file[i].originFileObj,
+      });
+    }
+    console.log(fileInfos)
+    sp.web.getFolderByServerRelativeUrl("/yfTest_1/a/").files.addChunked(this.upload_file[0].name,this.upload_file[0].originFileObj, data => {
+
+    }, true).then();
+  }
   public render(): React.ReactElement<IShowPageProps> {
+    
     return(
       <div className = {styles.showPage} >
-        <div className={`${styles.four} ${styles.columns} ${styles.categorypreview}`}>
-          <div className={`${styles.bgwhite} ${styles.categorypreviewouter}`}>
-            <div className={`${styles.aligncenter} ${styles.mb4x}`}>
-              
-                            <div className={`${styles.categoryimageouter} ${styles.mt3x}${styles.mt1x} `}>
-                                <div className={styles.categoryimagebg}></div>
-                                <div className={styles.categoryimage} ></div>
-                            </div>
-                            <h3 className={`${styles.lh1} ${styles.pnone} ${styles.mnone} ${styles.cheading4}`} style={{color: '#4295D1'}}>保持高效</h3>
-              
+            <div> <Upload.Dragger onChange={this.uploadOnChange} multiple={true}>
+                      {/*  <p className="ant-upload-drag-icon">
+                     
+                    </p> */}
+                      <p className="ant-upload-text"> <Icon type="inbox" />点击或拖拽至此处</p>
+                      <p className="ant-upload-hint">
+                        支持单个或批量上传，严谨传公司保密文件。
+                    </p>
+                    </Upload.Dragger>
             </div>
-            <div className={styles.ph2x}>
-                            <button className={styles.tipitem} data-tip='63'>
-                                <span className={styles.tipitemcard}  style={{backgroundColor: '#4295D1'}}></span>
-                                <span className={styles.tipcheckmark}>
-                                    <svg viewBox='0 0 50 50' version='1.1' xmlns='http://www.w3.org/2000/svg'>
-                                        <g id='check-on' fill='none' fill-rule='evenodd'>
-                                            <polygon className={styles.tipcheckmarkcorner} points='0 0 50 0 50 50'></polygon>
-                                            <polygon className={styles.tipcheckmarkcheck} points='32.4356804 21 26 14.3412147 27.9402989 12.3648649 32.4356804 17.0033768 42.0597088 7 44 8.97634979'></polygon>
-                                        </g>
-                                    </svg>                                </span>
-
-
-                                <span className={`${styles.tipitemdesc}`}>停止自动播放视频</span>
-                            </button>
-                            <button className={styles.tipitem} data-tip='63'>
-                                <span className={styles.tipitemcard}  style={{backgroundColor: '#4295D1'}}></span>
-                                <span className={styles.tipcheckmark}>
-                                    <svg viewBox='0 0 50 50' version='1.1' xmlns='http://www.w3.org/2000/svg'>
-                                        <g id='check-on' fill='none' fill-rule='evenodd'>
-                                            <polygon className={styles.tipcheckmarkcorner} points='0 0 50 0 50 50'></polygon>
-                                            <polygon className={styles.tipcheckmarkcheck} points='32.4356804 21 26 14.3412147 27.9402989 12.3648649 32.4356804 17.0033768 42.0597088 7 44 8.97634979'></polygon>
-                                        </g>
-                                    </svg>                                </span>
-
-
-                                <span className={`${styles.tipitemdesc}`}>停止自动播放视频</span>
-                            </button>
-                            <button className={styles.tipitem} data-tip='63'>
-                                <span className={styles.tipitemcard}  style={{backgroundColor: '#4295D1'}}></span>
-                                <span className={styles.tipcheckmark}>
-                                    <svg viewBox='0 0 50 50' version='1.1' xmlns='http://www.w3.org/2000/svg'>
-                                        <g id='check-on' fill='none' fill-rule='evenodd'>
-                                            <polygon className={styles.tipcheckmarkcorner} points='0 0 50 0 50 50'></polygon>
-                                            <polygon className={styles.tipcheckmarkcheck} points='32.4356804 21 26 14.3412147 27.9402989 12.3648649 32.4356804 17.0033768 42.0597088 7 44 8.97634979'></polygon>
-                                        </g>
-                                    </svg>                                </span>
-
-
-                                <span className={`${styles.tipitemdesc}`}>停止自动播放视频</span>
-                            </button>
-                            <button className={styles.tipitem} data-tip='63'>
-                                <span className={styles.tipitemcard}  style={{backgroundColor: '#4295D1'}}></span>
-                                <span className={styles.tipcheckmark}>
-                                    <svg viewBox='0 0 50 50' version='1.1' xmlns='http://www.w3.org/2000/svg'>
-                                        <g id='check-on' fill='none' fill-rule='evenodd'>
-                                            <polygon className={styles.tipcheckmarkcorner} points='0 0 50 0 50 50'></polygon>
-                                            <polygon className={styles.tipcheckmarkcheck} points='32.4356804 21 26 14.3412147 27.9402989 12.3648649 32.4356804 17.0033768 42.0597088 7 44 8.97634979'></polygon>
-                                        </g>
-                                    </svg>                                </span>
-
-
-                                <span className={`${styles.tipitemdesc}`}>停止自动播放视频</span>
-                            </button>
-                            <button className={styles.tipitem} data-tip='63'>
-                                <span className={styles.tipitemcard}  style={{backgroundColor: '#4295D1'}}></span>
-                                <span className={styles.tipcheckmark}>
-                                    <svg viewBox='0 0 50 50' version='1.1' xmlns='http://www.w3.org/2000/svg'>
-                                        <g id='check-on' fill='none' fill-rule='evenodd'>
-                                            <polygon className={styles.tipcheckmarkcorner} points='0 0 50 0 50 50'></polygon>
-                                            <polygon className={styles.tipcheckmarkcheck} points='32.4356804 21 26 14.3412147 27.9402989 12.3648649 32.4356804 17.0033768 42.0597088 7 44 8.97634979'></polygon>
-                                        </g>
-                                    </svg>                                </span>
-
-
-                                <span className={`${styles.tipitemdesc}`}>停止自动播放视频</span>
-                            </button>
-            </div>
-            <div></div>
-          </div>
-        </div>
-        
-        <div className={`${styles.four} ${styles.columns} ${styles.categorypreview}`}>
-          <div className={`${styles.bgwhite} ${styles.categorypreviewouter}`}>
-            <div className={`${styles.aligncenter} ${styles.mb4x}`}>
-              
-                            <div className={`${styles.categoryimageouter} ${styles.mt3x}${styles.mt1x} `}>
-                                <div className={styles.categoryimagebg}></div>
-                                <div className={styles.categoryimage} ></div>
-                            </div>
-                            <h3 className={`${styles.lh1} ${styles.pnone} ${styles.mnone} ${styles.cheading4}`} style={{color: '#4295D1'}}>保持高效</h3>
-              
-            </div>
-            <div className={styles.ph2x}>
-                            <button className={styles.tipitem} data-tip='63'>
-                                <span className={styles.tipitemcard}  style={{backgroundColor: '#4295D1'}}></span>
-                                <span className={styles.tipcheckmark}>
-                                    <svg viewBox='0 0 50 50' version='1.1' xmlns='http://www.w3.org/2000/svg'>
-                                        <g id='check-on' fill='none' fill-rule='evenodd'>
-                                            <polygon className={styles.tipcheckmarkcorner} points='0 0 50 0 50 50'></polygon>
-                                            <polygon className={styles.tipcheckmarkcheck} points='32.4356804 21 26 14.3412147 27.9402989 12.3648649 32.4356804 17.0033768 42.0597088 7 44 8.97634979'></polygon>
-                                        </g>
-                                    </svg>                                </span>
-
-
-                                <span className={`${styles.tipitemdesc}`}>停止自动播放视频</span>
-                            </button>
-                            <button className={styles.tipitem} data-tip='63'>
-                                <span className={styles.tipitemcard}  style={{backgroundColor:'#4295D1'}}></span>
-                                <span className={styles.tipcheckmark}>
-                                    <svg viewBox='0 0 50 50' version='1.1' xmlns='http://www.w3.org/2000/svg'>
-                                        <g id='check-on' fill='none' fill-rule='evenodd'>
-                                            <polygon className={styles.tipcheckmarkcorner} points='0 0 50 0 50 50'></polygon>
-                                            <polygon className={styles.tipcheckmarkcheck} points='32.4356804 21 26 14.3412147 27.9402989 12.3648649 32.4356804 17.0033768 42.0597088 7 44 8.97634979'></polygon>
-                                        </g>
-                                    </svg>                                </span>
-
-
-                                <span className={`${styles.tipitemdesc}`}>停止自动播放视频</span>
-                            </button>
-                            <button className={styles.tipitem} data-tip='63'>
-                                <span className={styles.tipitemcard}  style={{backgroundColor: '#4295D1'}}></span>
-                                <span className={styles.tipcheckmark}>
-                                    <svg viewBox='0 0 50 50' version='1.1' xmlns='http://www.w3.org/2000/svg'>
-                                        <g id='check-on' fill='none' fill-rule='evenodd'>
-                                            <polygon className={styles.tipcheckmarkcorner} points='0 0 50 0 50 50'></polygon>
-                                            <polygon className={styles.tipcheckmarkcheck} points='32.4356804 21 26 14.3412147 27.9402989 12.3648649 32.4356804 17.0033768 42.0597088 7 44 8.97634979'></polygon>
-                                        </g>
-                                    </svg>                                </span>
-
-
-                                <span className={`${styles.tipitemdesc}`}>停止自动播放视频</span>
-                            </button>
-                            <button className={styles.tipitem} data-tip='63'>
-                                <span className={styles.tipitemcard}  style={{backgroundColor:'#4295D1'}}></span>
-                                <span className={styles.tipcheckmark}>
-                                    <svg viewBox='0 0 50 50' version='1.1' xmlns='http://www.w3.org/2000/svg'>
-                                        <g id='check-on' fill='none' fill-rule='evenodd'>
-                                            <polygon className={styles.tipcheckmarkcorner} points='0 0 50 0 50 50'></polygon>
-                                            <polygon className={styles.tipcheckmarkcheck} points='32.4356804 21 26 14.3412147 27.9402989 12.3648649 32.4356804 17.0033768 42.0597088 7 44 8.97634979'></polygon>
-                                        </g>
-                                    </svg>                                </span>
-
-
-                                <span className={`${styles.tipitemdesc}`}>停止自动播放视频</span>
-                            </button>
-                            <button className={styles.tipitem} data-tip='63'>
-                                <span className={styles.tipitemcard}  style={{backgroundColor: '#4295D1'}}></span>
-                                <span className={styles.tipcheckmark}>
-                                    <svg viewBox='0 0 50 50' version='1.1' xmlns='http://www.w3.org/2000/svg'>
-                                        <g id='check-on' fill='none' fill-rule='evenodd'>
-                                            <polygon className={styles.tipcheckmarkcorner} points='0 0 50 0 50 50'></polygon>
-                                            <polygon className={styles.tipcheckmarkcheck} points='32.4356804 21 26 14.3412147 27.9402989 12.3648649 32.4356804 17.0033768 42.0597088 7 44 8.97634979'></polygon>
-                                        </g>
-                                    </svg>                                </span>
-
-
-                                <span className={`${styles.tipitemdesc}`}>停止自动播放视频</span>
-                            </button>
-            </div>
-            <div></div>
-          </div>
-        </div>
-        
-        <div className={`${styles.four} ${styles.columns} ${styles.categorypreview}`}>
-          <div className={`${styles.bgwhite} ${styles.categorypreviewouter}`}>
-            <div className={`${styles.aligncenter} ${styles.mb4x}`}>
-              
-                            <div className={`${styles.categoryimageouter} ${styles.mt3x}${styles.mt1x} `}>
-                                <div className={styles.categoryimagebg}></div>
-                                <div className={styles.categoryimage} ></div>
-                            </div>
-                            <h3 className={`${styles.lh1} ${styles.pnone} ${styles.mnone} ${styles.cheading4}`} style={{color: '#4295D1'}}>保持高效</h3>
-              
-            </div>
-            <div className={styles.ph2x}>
-                            <button className={styles.tipitem} data-tip='63'>
-                                <span className={styles.tipitemcard}  style={{backgroundColor: '#4295D1'}}></span>
-                                <span className={styles.tipcheckmark}>
-                                    <svg viewBox='0 0 50 50' version='1.1' xmlns='http://www.w3.org/2000/svg'>
-                                        <g id='check-on' fill='none' fill-rule='evenodd'>
-                                            <polygon className={styles.tipcheckmarkcorner} points='0 0 50 0 50 50'></polygon>
-                                            <polygon className={styles.tipcheckmarkcheck} points='32.4356804 21 26 14.3412147 27.9402989 12.3648649 32.4356804 17.0033768 42.0597088 7 44 8.97634979'></polygon>
-                                        </g>
-                                    </svg>                                </span>
-
-
-                                <span className={`${styles.tipitemdesc}`}>停止自动播放视频</span>
-                            </button>
-                            <button className={styles.tipitem} data-tip='63'>
-                                <span className={styles.tipitemcard}  style={{backgroundColor: '#4295D1'}}></span>
-                                <span className={styles.tipcheckmark}>
-                                    <svg viewBox='0 0 50 50' version='1.1' xmlns='http://www.w3.org/2000/svg'>
-                                        <g id='check-on' fill='none' fill-rule='evenodd'>
-                                            <polygon className={styles.tipcheckmarkcorner} points='0 0 50 0 50 50'></polygon>
-                                            <polygon className={styles.tipcheckmarkcheck} points='32.4356804 21 26 14.3412147 27.9402989 12.3648649 32.4356804 17.0033768 42.0597088 7 44 8.97634979'></polygon>
-                                        </g>
-                                    </svg>                                </span>
-
-
-                                <span className={`${styles.tipitemdesc}`}>停止自动播放视频</span>
-                            </button>
-                            <button className={styles.tipitem} data-tip='63'>
-                                <span className={styles.tipitemcard}  style={{backgroundColor: '#4295D1'}}></span>
-                                <span className={styles.tipcheckmark}>
-                                    <svg viewBox='0 0 50 50' version='1.1' xmlns='http://www.w3.org/2000/svg'>
-                                        <g id='check-on' fill='none' fill-rule='evenodd'>
-                                            <polygon className={styles.tipcheckmarkcorner} points='0 0 50 0 50 50'></polygon>
-                                            <polygon className={styles.tipcheckmarkcheck} points='32.4356804 21 26 14.3412147 27.9402989 12.3648649 32.4356804 17.0033768 42.0597088 7 44 8.97634979'></polygon>
-                                        </g>
-                                    </svg>                                </span>
-
-
-                                <span className={`${styles.tipitemdesc}`}>停止自动播放视频</span>
-                            </button>
-                            <button className={styles.tipitem} data-tip='63'>
-                                <span className={styles.tipitemcard}  style={{backgroundColor: '#4295D1'}}></span>
-                                <span className={styles.tipcheckmark}>
-                                    <svg viewBox='0 0 50 50' version='1.1' xmlns='http://www.w3.org/2000/svg'>
-                                        <g id='check-on' fill='none' fill-rule='evenodd'>
-                                            <polygon className={styles.tipcheckmarkcorner} points='0 0 50 0 50 50'></polygon>
-                                            <polygon className={styles.tipcheckmarkcheck} points='32.4356804 21 26 14.3412147 27.9402989 12.3648649 32.4356804 17.0033768 42.0597088 7 44 8.97634979'></polygon>
-                                        </g>
-                                    </svg>                                </span>
-
-
-                                <span className={`${styles.tipitemdesc}`}>停止自动播放视频</span>
-                            </button>
-                            <button className={styles.tipitem} data-tip='63'>
-                                <span className={styles.tipitemcard}  style={{backgroundColor: '#4295D1'}}></span>
-                                <span className={styles.tipcheckmark}>
-                                    <svg viewBox='0 0 50 50' version='1.1' xmlns='http://www.w3.org/2000/svg'>
-                                        <g id='check-on' fill='none' fill-rule='evenodd'>
-                                            <polygon className={styles.tipcheckmarkcorner} points='0 0 50 0 50 50'></polygon>
-                                            <polygon className={styles.tipcheckmarkcheck} points='32.4356804 21 26 14.3412147 27.9402989 12.3648649 32.4356804 17.0033768 42.0597088 7 44 8.97634979'></polygon>
-                                        </g>
-                                    </svg>                                </span>
-
-
-                                <span className={`${styles.tipitemdesc}`}>停止自动播放视频</span>
-                            </button>
-            </div>
-            <div></div>
-          </div>
-        </div>
-        
-        
+                <button onClick={this.fileAdd}>上传</button>
       </div >
     );
   }
