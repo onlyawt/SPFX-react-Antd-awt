@@ -12,6 +12,7 @@ import { ApproveListItem } from './ApproveListItem';
 import { IBusinessApplicationState } from './IBusinessApplicationState';
 import { SPUser } from '@microsoft/sp-page-context';
 import { escape, debounce } from '@microsoft/sp-lodash-subset';
+import Search from 'antd/lib/input/Search';
 const { TabPane } = Tabs;
 export default class BusinessApplication extends React.Component<IBusinessApplicationProps, {}> {
 
@@ -61,6 +62,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     Cvalue:[],
     Svalue:[],
     upfile:[],
+    inputDisplay:'none',
+    searchContent:null,
   }
 
   private upload_file = [];// 上传附件
@@ -107,6 +110,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 获取审阅下拉框的数据
    */
   public handleValue = (value) => {  
+    console.log(value)
     this.setState({ 
       validateStatus_1:null,// 表单状态
       help_1:null,// 表单校验文案
@@ -577,7 +581,13 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     this.last_fetch_id = 0;
     this.fetchUser = debounce(this.fetchUser, 500);
   }
-
+  
+  public searchText = (event) => {
+    console.log(event)
+    this.setState({
+      searchContent:event.target.value,
+    })
+  }
 
   //添加窗口标题
   async handleChangeTitle(event) {
@@ -759,7 +769,9 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       cButtonState:'inline-block', // 处理按钮状态
       tButtonState:'inline-block', // 退回按钮状态
       gButtonState:'inline-block', // 归档按钮状态  
+      inputDisplay:'none',
       menuKey:pageKey,
+      Svalue:[],
       current:null,
     });
     let Approval = null;
@@ -956,7 +968,62 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   public handleChange() {
     return false;
   }
-  
+  public getsearch = () =>{
+      this.setState({
+        inputDisplay:'inline-block',
+        data:null,
+        selindex: 0,
+      });
+  }
+
+  public async searchValue(){
+    
+    let abc =` <Query><Where><Contains><FieldRef Name='Title' /><Value Type='Text'>2</Value></Contains></Where></Query>`
+    console.log(this.state.selindex)
+    let name = await sp.web.currentUser.get();
+    let username = name.Id;
+    console.log(this.state.searchContent)
+    if(this.state.nameList != []){
+      if(this.state.searchContent == null){
+        sp.web.lists.getByTitle(this.props.ApprovealListName).items.filter('ApprovalUserId eq '
+         + this.state.nameList + ' and ApprovalUsersId eq ' + username +' and CCUserId eq ' +username).get().then(items=>{
+           console.log(items)
+           if(items.length == 0){
+             this.setState({
+               data:null
+             })
+           }
+           else{
+          this.setState({
+            data:items,
+            Svalue:[],
+          })
+        }
+        })
+      }
+      else{
+        let camlquery={
+          ViewXml:`<View><Query><Where><Contains><FieldRef Name='Title' /><Value Type='Text'>${this.state.searchContent}</Value></Contains></Where></Query></View>`
+        }
+    
+        sp.web.lists.getByTitle(this.props.ApprovealListName).getItemsByCAMLQuery(camlquery).then(items=>{    
+          console.log('123')
+          if(items.length == 0 ){
+            this.setState({
+              data:null
+            })
+          }
+          else{
+            this.setState({
+              data:items,
+              Svalue:[],
+              searchContent:null
+            })
+          }
+        });
+      }
+    }
+  }
 
   public render(): React.ReactElement<IBusinessApplicationProps> {
     const { visible1, visible, loading, data, Title, lineContent, approveDiv, adata } = this.state;
@@ -969,9 +1036,33 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             <Menu.Item key='1' onClick={this.getPageList.bind(this,1)}>待办</Menu.Item>
             <Menu.Item key='2' onClick={this.getPageList.bind(this,2)}>已办</Menu.Item>
             <Menu.Item key='3' onClick={this.getPageList.bind(this,3)}>我的</Menu.Item>
+            <Menu.Item key='4' onClick={this.getsearch}>查询</Menu.Item>
             <Button onClick={this.createItem.bind(this)} className={styles.applyb}>申请</Button>
           </Menu>
           <div>
+            <div style={{display:this.state.inputDisplay,width:'100%'}} >
+            <Select
+                  showSearch={true}
+                  labelInValue
+                  placeholder="搜索申请人"
+                  notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
+                  filterOption={false}
+                  onSearch={this.fetchUser}
+                  onChange={this.handleValue}
+                  style={{ width: '40%' }}
+                  value={this.state.Svalue}
+                >
+                  {this.state.people_data.map(t => (
+                    <Select.Option key={t.value}>{t.text}</Select.Option>
+                  ))}
+                </Select>
+                <Input.TextArea rows={1} 
+                value={this.state.searchContent} 
+                onChange={this.searchText} 
+                placeholder="请输入标题或内容"  
+                style={{ width:'46%',marginLeft:'2%',marginRight:'2%' }}/>
+          <Button  icon='search' type='primary' onClick={this.searchValue.bind(this)}/>
+            </div>
             <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={data} size='small' pagination={{ pageSize: 5 ,current:this.state.current,onChange:(page)=>{this.setState({current:page,});},}} />
           </div>
 
