@@ -8,7 +8,6 @@ import * as moment from 'moment';
 import 'core-js/es6/array';
 import "es6-map/implement";
 import "core-js/modules/es6.array.find";
-import 'es6-shim';
 import { ApproveListItem } from './ApproveListItem';
 import { IBusinessApplicationState } from './IBusinessApplicationState';
 import { SPUser } from '@microsoft/sp-page-context';
@@ -237,7 +236,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
     // get all the attachments
     let fileName = await item.attachmentFiles.get()
-
+    //console.log('http://bjweb/_layouts/15/WopiFrame.aspx?sourcedoc='+fileName[1].ServerRelativeUrl);  
+    console.log(fileName);  
 
     for (let key in fileName) {
 
@@ -246,11 +246,11 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         name: fileName[key].FileName,
         status: 'done',
         response: 'Server Error 500',
-        url: fileName[key].ServerRelativeUrl,
+        url:'http://bjweb/_layouts/15/WopiFrame.aspx?sourcedoc='+fileName[key].ServerRelativeUrl,
       });
       this.state.iFNUM--;
     }
-    console.log(this.state.defaultFiletext);
+    
   }
   //处理窗口正文
   public processChangeContent = (event) => {
