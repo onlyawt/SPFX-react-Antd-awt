@@ -121,7 +121,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 获取传阅下拉框的数据
    */
   public handleValueView = async (value) => {
-    console.log(value)
     this.setState({
       Cvalue:value,
     })
@@ -131,17 +130,30 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     }));
     
     var k_1:number=usageView.length;
-    let nameli=[]
+    let nameli=[];
+    
     if(k_1!=0){
     for(var i=0;i<k_1;i++){
-      console.log(usageView[i].Title.substr(4))
-      let currentUser = await sp.web.lists.getByTitle('通讯录').items.filter("deptName eq '"+usageView[i].Title.substr(4)+"'").get();
-      
-      console.log(currentUser)
-      nameli[i]=Number(usageView[i].id);
+      if(usageView[i].Title.indexOf("CWE") != -1)
+      {
+        sp.web.lists.getByTitle('通讯录').items.filter("deptName eq '"+usageView[i].Title.substr(4)+"'").get().then(users => {
+        users.map((user,index) => {
+          if(user._x59d3__x540d_StringId!=null)
+          {
+          nameli.push(user._x59d3__x540d_StringId);
+            }
+         // nameli.push({user}.)
+           });
+      });
+      }
+     else
+       {
+       nameli.push(Number(usageView[i].id));
+       }
     }
     }
     else{nameli=[]}
+    console.log(nameli);
     this.state.nameListView=nameli;
   }
   /**
