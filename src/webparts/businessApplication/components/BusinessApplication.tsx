@@ -314,6 +314,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     }, 500);
     this.getPageList(this.state.menuKey);
     this.state.waitList=[];
+    this.setState({
+      Svalue:[],
+      upfile:[],  
+    })
     }
     else{
       let pushUsersId = [];
@@ -352,6 +356,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       }, 500);
       this.getPageList(this.state.menuKey);
       this.state.waitList=[];
+      this.setState({
+        Svalue:[],
+        upfile:[],  
+      })  
     }
   }
   /**
@@ -359,7 +367,11 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    */
 
   public processCancel = () => {
-    this.setState({ processVisible: false });
+    this.setState({ 
+      processVisible: false,
+      Svalue:[],
+      processContent:null,
+     });
   }
   //退回窗口正文
   public backChangeContent = (event) => {
@@ -373,8 +385,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     let current = await sp.web.lists.getByTitle(this.props.ApprovealListName).items.getById(itemid).get();
     pushUsersId = current.ApprovalUsersId;
     let createUser = await sp.web.currentUser.get();// 当前操作人
-    let creatUserid = current.creatUserId;// 申请人
-    console.log(creatUserid)
+    let creatUserid = current.createUserId;// 申请人
     let appId = current.ApproveID;
     pushUsersId.push(createUser.Id);
     await sp.web.lists.getByTitle(this.props.ApprovealListName).items.getById(itemid).update({
@@ -411,7 +422,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    */
 
   public backCancel = () => {
-    this.setState({ backVisible: false });
+    this.setState({ 
+      backVisible: false,
+      backContent:null,
+     });
   }
   //归档窗口正文
   public fileChangeContent = (event) => {
@@ -464,7 +478,10 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    */
 
   public fileCancel = () => {
-    this.setState({ fileVisible: false });
+    this.setState({ 
+      fileVisible: false,
+      fileContent: null,
+     });
   }
   /**
    * 传阅确定按钮
@@ -487,8 +504,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     }).then(console.log);
     setTimeout(() => {
     this.setState({
-      
       CirculateVisible: false,
+      Cvalue:[],
     });
     message.success('传阅成功');
   }, 500);
@@ -499,14 +516,18 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    */
 
   public CirculateCancel = () => {
-    this.setState({ CirculateVisible: false });
+    this.setState({ 
+      CirculateVisible: false,
+      Cvalue:[],
+     });
   }
   /**
    * 弹出页面关闭
    */
   public pageCancel = () => {
     this.setState({
-      visible1: false
+      visible1: false,
+      upfile:[],
     });
     this.state.waitList=[];
     //this.state.status="wait"
@@ -956,7 +977,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
 
           {/* 显示数据和进度 */}
           <Modal
-            width={'50%'}
+            width={800}
             visible={visible1}
             title={this.state.modalTitle}
             centered
@@ -994,7 +1015,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                     <tr >
                       <td>附件上传</td>
                       <td>
-                        <Upload onChange={this.uploadOnChange}>
+                        <Upload onChange={this.uploadOnChange} fileList={this.state.upfile}>
                           <Button size="small">
                             <Icon type="upload" /> 上传附件
                           </Button>
@@ -1043,6 +1064,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                           onSearch={this.fetchUser}
                           onChange={this.handleValue}
                           style={{ width: '100%'  ,marginBottom:'20px'}}
+                          value={this.state.Svalue}
                         >
                           {this.state.people_data.map(d => (
                             <Select.Option key={d.value}>{d.text}</Select.Option>
@@ -1131,6 +1153,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                   onSearch={this.fetchUser}
                   onChange={this.handleValueView}
                   style={{ width: '100%' ,marginBottom:'20px'}}
+                  value={this.state.Cvalue}
                 >
                   {this.state.people_data.map(t => (
                     <Select.Option key={t.value}>{t.text}</Select.Option>
