@@ -1027,26 +1027,68 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   public handleChange() {
     return false;
   }
-  public getsearch = () =>{
+  public getsearch = async () =>{
+    let name = await sp.web.currentUser.get();
+    let username = name.Id;
       this.setState({
         inputDisplay:'inline-block',
         data:null,
         selindex: 0,
       });
-  }
+      let camlquery={
+        ViewXml:`<View><Query>
+        <Where>
+        <Or><Or>
+        <Includes><FieldRef Name='ApprovalUsers' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes>
+        <Includes><FieldRef Name='CCUser' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes></Or>
+        <Includes><FieldRef Name='ApprovalUser' LookupId='True'/><Value Type='User'>${username}</Value></Includes>
+        </Or>
+        </Where>
+        <OrderBy>
+        <FieldRef Name='createTime' Ascending='False' />
+        </OrderBy>
+        </Query></View>`
+        }
+        sp.web.lists.getByTitle(this.props.ApprovealListName).getItemsByCAMLQuery(camlquery).then(items=>{    
+          if(items.length == 0 ){
+            this.setState({
+              data:null
+            })
+          }
+          else{
+            this.setState({
+              data:items,
+              Svalue:[],
+              searchContent:null,
+              nameList:null,
+            })
+          }
+        });
+}
 
-  public async searchValue(){
-    
-    let abc =` <Query><Where><Contains><FieldRef Name='Title' /><Value Type='Text'>2</Value></Contains></Where></Query>`
-    console.log(this.state.selindex)
+  public  async  searchValue(){
     let name = await sp.web.currentUser.get();
     let username = name.Id;
-    console.log(this.state.searchContent)
-    if(this.state.nameList != []){
+    if(this.state.Svalue.length != 0){
       if(this.state.searchContent == null){
-        sp.web.lists.getByTitle(this.props.ApprovealListName).items.filter('ApprovalUserId eq '
-         + this.state.nameList + ' and ApprovalUsersId eq ' + username +' and CCUserId eq ' +username).get().then(items=>{
-           console.log(items)
+        let camlquery={
+          ViewXml:`<View><Query>
+          <Where>
+          <And>
+          <Or><Or>
+          <Includes><FieldRef Name='ApprovalUsers' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes>
+          <Includes><FieldRef Name='CCUser' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes></Or>
+          <Includes><FieldRef Name='ApprovalUser' LookupId='True'/><Value Type='User'>${username}</Value></Includes>
+          </Or>
+          <Eq><FieldRef Name='createUser' LookupId='True'/><Value Type='User'>${this.state.nameList}</Value></Eq>
+          </And>
+          </Where>
+          <OrderBy>
+          <FieldRef Name='createTime' Ascending='False' />
+          </OrderBy>
+          </Query></View>`
+        }
+        sp.web.lists.getByTitle(this.props.ApprovealListName).getItemsByCAMLQuery(camlquery).then(items=>{
            if(items.length == 0){
              this.setState({
                data:null
@@ -1062,11 +1104,30 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       }
       else{
         let camlquery={
-          ViewXml:`<View><Query><Where><Contains><FieldRef Name='Title' /><Value Type='Text'>${this.state.searchContent}</Value></Contains></Where></Query></View>`
+          ViewXml:` <View><Query>         
+          <Where>
+          <And>
+          <And>
+          <Or><Or>
+          <Includes><FieldRef Name='ApprovalUsers' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes>
+          <Includes><FieldRef Name='CCUser' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes></Or>
+          <Includes><FieldRef Name='ApprovalUser' LookupId='True'/><Value Type='User'>${username}</Value></Includes>
+          </Or>
+          <Eq><FieldRef Name='createUser' LookupId='True'/><Value Type='User'>${this.state.nameList}</Value></Eq>
+          </And>
+          <Or>
+          <Contains><FieldRef Name='Title' /><Value Type='Text'>${this.state.searchContent}</Value></Contains>
+          <Contains><FieldRef Name='Content' /><Value Type='Text'>${this.state.searchContent}</Value></Contains>
+          </Or>
+          </And>
+          </Where>
+          <OrderBy>
+          <FieldRef Name='createTime' Ascending='False' />
+          </OrderBy>
+          </Query></View>
+          `
         }
-    
         sp.web.lists.getByTitle(this.props.ApprovealListName).getItemsByCAMLQuery(camlquery).then(items=>{    
-          console.log('123')
           if(items.length == 0 ){
             this.setState({
               data:null
@@ -1076,10 +1137,81 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
             this.setState({
               data:items,
               Svalue:[],
-              searchContent:null
+              searchContent:null,
+              nameList:null,
             })
           }
         });
+      }
+    }
+    else{
+      if(this.state.searchContent != null){
+        let camlquery={
+          ViewXml:`<View><Query>
+          <Where>
+          <And>
+          <Or><Or>
+          <Includes><FieldRef Name='ApprovalUsers' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes>
+          <Includes><FieldRef Name='CCUser' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes></Or>
+          <Includes><FieldRef Name='ApprovalUser' LookupId='True'/><Value Type='User'>${username}</Value></Includes>
+          </Or>
+          <Or>
+          <Contains><FieldRef Name='Title' /><Value Type='Text'>${this.state.searchContent}</Value></Contains>
+          <Contains><FieldRef Name='Content' /><Value Type='Text'>${this.state.searchContent}</Value></Contains>
+          </Or>
+          </And>
+          </Where>
+          <OrderBy>
+          <FieldRef Name='createTime' Ascending='False' />
+          </OrderBy>
+          </Query></View>`
+          }
+          sp.web.lists.getByTitle(this.props.ApprovealListName).getItemsByCAMLQuery(camlquery).then(items=>{    
+            if(items.length == 0 ){
+              this.setState({
+                data:null
+              })
+            }
+            else{
+              this.setState({
+                data:items,
+                Svalue:[],
+                searchContent:null,
+                nameList:null,
+              })
+            }
+          });
+      }
+      else{
+        let camlquery={
+          ViewXml:`<View><Query>
+          <Where>
+          <Or><Or>
+          <Includes><FieldRef Name='ApprovalUsers' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes>
+          <Includes><FieldRef Name='CCUser' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes></Or>
+          <Includes><FieldRef Name='ApprovalUser' LookupId='True'/><Value Type='User'>${username}</Value></Includes>
+          </Or>
+          </Where>
+          <OrderBy>
+          <FieldRef Name='createTime' Ascending='False' />
+          </OrderBy>
+          </Query></View>`
+          }
+          sp.web.lists.getByTitle(this.props.ApprovealListName).getItemsByCAMLQuery(camlquery).then(items=>{    
+            if(items.length == 0 ){
+              this.setState({
+                data:null
+              })
+            }
+            else{
+              this.setState({
+                data:items,
+                Svalue:[],
+                searchContent:null,
+                nameList:null,
+              })
+            }
+          });
       }
     }
   }
@@ -1122,7 +1254,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                 style={{ width:'46%',marginLeft:'2%',marginRight:'2%' }}/>
           <Button  icon='search' type='primary' onClick={this.searchValue.bind(this)}/>
             </div>
-            <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={data} size='small' pagination={{ pageSize: 5 ,current:this.state.current,onChange:(page)=>{this.setState({current:page,});},}} />
+            <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={data} size='small' pagination={{ pageSize: 10 ,current:this.state.current,onChange:(page)=>{this.setState({current:page,});},}} />
           </div>
 
           {/* 显示数据和进度 */}
