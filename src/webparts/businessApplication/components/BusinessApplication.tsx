@@ -1034,6 +1034,9 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         inputDisplay:'inline-block',
         data:null,
         selindex: 0,
+        cButtonState:'none', // 处理按钮状态
+        tButtonState:'none', // 退回按钮状态
+        gButtonState:'none', // 归档按钮状态      
       });
       let camlquery={
         ViewXml:`<View><Query>
