@@ -330,7 +330,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           name: fileName[key].FileName,
           status: 'done',
           response: 'Server Error 500',
-          url:url1+fileName[key].ServerRelativeUrl,
+          url:url1+'/_layouts/15/WopiFrame.aspx?sourcedoc='+fileName[key].ServerRelativeUrl,
         });  
       }
       else {
