@@ -414,7 +414,7 @@ public handleChange() {
             <Menu.Item key='1' onClick={this.getApprove.bind(this)}>待阅</Menu.Item>
             <Menu.Item key='2' onClick={this.getApprove.bind(this)}>已阅</Menu.Item>
           </Menu>
-          <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={data} size='small' pagination={{ pageSize: 5 }} />
+          <Table columns={this.columns} rowClassName={() => styles.colheight} rowKey='ApproveID' dataSource={data} size='small' pagination={{ pageSize: 10 }} />
           <Modal
             width={'50%'}
             title={this.state.modalTitle}
