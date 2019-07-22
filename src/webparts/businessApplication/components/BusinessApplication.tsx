@@ -50,6 +50,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     people_fetching: false,
     people_fetching_1: false,
     defaultFiletext: [],
+    originator:null,
     nameList: null,
     nameListView:[],
     status:"wait",
@@ -104,8 +105,9 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     let userName = null;
     let neme = await sp.web.getUserById(ele.createUserId).get()
     userName = neme.Title;
-    this.setState(
-      { applicant: userName }
+    // this.state.applicant=userName;
+   this.setState(
+      { applicant:userName }
     );
   }
   /**
@@ -183,6 +185,13 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
    * 根据id查询一条数据
    */
   private showModal = async (row, index) => {
+    let Originator = null;
+    let neme = await sp.web.getUserById(row.createUserId).get();
+    Originator = neme.Title;
+    this.setState(
+      { originator:Originator }
+    );
+
     this.approvlaContent(row);
     this.state.people_data.splice(0);
     this.state.defaultFiletext.splice(0);
@@ -359,8 +368,6 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       let current = await sp.web.lists.getByTitle(this.props.ApprovealListName).items.getById(itemid).get();
       pushUsersId = current.ApprovalUsersId;
       let createUser = await sp.web.currentUser.get();// 当前操作人
-      //let creatUserid = current.creatUserId;// 申请人
-      //console.log(creatUserid)
       let appId = current.ApproveID;
       pushUsersId.push(createUser.Id);
       await sp.web.lists.getByTitle(this.props.ApprovealListName).items.getById(itemid).update({
@@ -401,12 +408,12 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       let current = await sp.web.lists.getByTitle(this.props.ApprovealListName).items.getById(itemid).get();
       pushUsersId = current.ApprovalUsersId;
       let createUser = await sp.web.currentUser.get();// 当前操作人
-      let creatUserid = current.creatUserId;// 申请人
-      //console.log(creatUserid)
+      let createUserid = current.createUserId;// 申请人
+      console.log(createUserid)
       let appId = current.ApproveID;
       pushUsersId.push(createUser.Id);
       await sp.web.lists.getByTitle(this.props.ApprovealListName).items.getById(itemid).update({
-        ApprovalUserId:creatUserid,
+        ApprovalUserId:createUserid,
         ApprovalUsersId: {
           results: pushUsersId,
         },
@@ -462,11 +469,11 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     let current = await sp.web.lists.getByTitle(this.props.ApprovealListName).items.getById(itemid).get();
     pushUsersId = current.ApprovalUsersId;
     let createUser = await sp.web.currentUser.get();// 当前操作人
-    let creatUserid = current.createUserId;// 申请人
+    let createUserid = current.createUserId;// 申请人
     let appId = current.ApproveID;
     pushUsersId.push(createUser.Id);
     await sp.web.lists.getByTitle(this.props.ApprovealListName).items.getById(itemid).update({
-      ApprovalUserId:creatUserid,
+      ApprovalUserId:createUserid,
       ApprovalUsersId: {
         results: pushUsersId,
       },
@@ -604,7 +611,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   public pageCancel = () => {
     this.setState({
       visible1: false,
-      upfile:[],
+      upfile: [],
     });
     this.state.waitList=[];
     //this.state.status="wait"
@@ -962,7 +969,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       var strname: string = '123';
       for (let index = 0; index < Items.length; index++) {
         let username = await sp.web.getUserById(Items[index]['CreateUserStringId']).get();
-        strname = username.Title;
+        strname = username.Title;   
         if (Items[index]['Content'] != null) {
           var msgT: string = Items[index]['Content'];
           var msg = this.optimizingData(msgT);
@@ -1011,7 +1018,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     }
   }
   /**
-   * 时间轴中待审批
+   * 步骤中待审批
    */
   public waitLine = async (waitText)=>{
     //console.log(waitText);
@@ -1023,7 +1030,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       let Approvalname = await sp.web.getUserById(waitText['ApprovalUserStringId']).get();
       var strname:string = Approvalname.Title;
       //console.log(waitText.ApprovalUserStringId);
-    Linewait.push(<Steps.Step icon={<Icon type="history"/>} status="finish"  title={'当前处理人：' + strname + '[' + moment(waitText['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+    Linewait.push(<Steps.Step  status="finish"  title={'当前处理人：' + strname + '[' + moment(waitText['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
             description={'审批内容：' + '待审批...'} />);
     }
     else{
@@ -1340,7 +1347,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               </Col>
               <Col xs={24} lg={11}>
                 <Steps direction="vertical" style={{ marginTop: '10px' }} size='small' /* progressDot={customDot} */>
-                  <Steps.Step status="finish"  icon={<Icon type="user" />} title={'申请人：' + (this.state.applicant ? this.state.applicant : '没有数据！') + '[' + (data ? moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  HH:mm') : '没有数据！') + ']'} />
+                  <Steps.Step status="finish"  icon={<Icon type="user" />} title={'申请人：' + (this.state.originator ? this.state.originator : '没有数据！') + '[' + (data ? moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  HH:mm') : '没有数据！') + ']'} />
                   {this.state.timeList}
                   {this.state.waitList}
                   {/* <Steps.Step style={{}} status={'wait'} icon={<Icon type="check-circle" />} title='未结束'/> */}
@@ -1359,8 +1366,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                 转发：
                 <Select
                           showSearch={true}
-                          labelInValue
-                          placeholder="请选择审阅人"
+                          //defaultValue={this.state.applicant}
+                          placeholder={"不填写则默认转发至申请人"+this.state.originator}
                           notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
                           filterOption={false}
                           onSearch={this.fetchUser}
