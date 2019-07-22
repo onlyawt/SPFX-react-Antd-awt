@@ -1008,7 +1008,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       let Approvalname = await sp.web.getUserById(waitText['ApprovalUserStringId']).get();
       var strname:string = Approvalname.Title;
       //console.log(waitText.ApprovalUserStringId);
-    Linewait.push(<Steps.Step icon={<Icon type="history"/>} status="finish"  title={'当前处理人：' + strname + '[' + moment(waitText['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+    Linewait.push(<Steps.Step  status="finish"  title={'当前处理人：' + strname + '[' + moment(waitText['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
             description={'审批内容：' + '待审批...'} />);
     }
     else{

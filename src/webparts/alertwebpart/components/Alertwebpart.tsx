@@ -333,7 +333,7 @@ public async timeLine(ID) {
           description={'已结束'} />);
         }
         else{
-          Line.push(<Steps.Step status="finish" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+          Line.push(<Steps.Step icon={<Icon type="check-circle" />} status="finish" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
           description={'审批内容：' + msg} />);
         }
       }
@@ -347,7 +347,7 @@ public async timeLine(ID) {
           description={'已结束'} />);
         }
         else{
-          Line.push(<Steps.Step status="finish" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+          Line.push(<Steps.Step icon={<Icon type="check-circle" />} status="finish" title={'处理人：' + strname + '[' + moment(Items[index]['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
           description={'审批内容：' + '无审批意见'} />);    
         }
       }
@@ -380,7 +380,7 @@ public waitLine = async (waitText)=>{
     let Approvalname = await sp.web.getUserById(waitText['ApprovalUserStringId']).get();
     var strname:string = Approvalname.Title;
     //console.log(waitText.ApprovalUserStringId);
-  Linewait.push(<Steps.Step status="process" icon={<Icon type="loading" />} title={'当前处理人：' + strname + '[' + moment(waitText['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
+  Linewait.push(<Steps.Step  status="finish"  title={'当前处理人：' + strname + '[' + moment(waitText['CreateTime']).format('YYYY-MM-DD  HH:mm') + ']'}
           description={'审批内容：' + '待审批...'} />);
   }
   else{
