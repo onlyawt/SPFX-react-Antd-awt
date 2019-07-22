@@ -167,28 +167,42 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
   //   }
   // }
 
+  //显示附件
   private async getFile(fileId) {
-    // console.log(this.state.defaultFiletext);
 
     let item = sp.web.lists.getByTitle(this.props.ApprovealListName).items.getById(fileId);
 
     // get all the attachments
-    let fileName = await item.attachmentFiles.get();
-
-    // console.log(f);
+    let fileName = await item.attachmentFiles.get()
+    //console.log('http://bjweb/_layouts/15/WopiFrame.aspx?sourcedoc='+fileName[1].ServerRelativeUrl);  
+    console.log(fileName);  
+    console.log(sp.site.toUrl) 
+    let url = await sp.web.get()
     for (let key in fileName) {
-
-      this.state.defaultFiletext.push({
-        uid: this.state.iFNUM,
-        name: fileName[key].FileName,
-        status: 'done',
-        response: 'Server Error 500',
-        url: fileName[key].ServerRelativeUrl,
-      });
-      // console.log(this.state.defaultFiletext);
+      let filename = fileName[key].FileName;
+      let suffix = filename.substring(filename.lastIndexOf(".") + 1);
+      if(suffix == 'doc' || suffix == 'docx' || suffix == 'xls' || suffix=='xlsx' || suffix=='ppt' || suffix=='pptx'){
+        let url1=url.Url
+        this.state.defaultFiletext.push({
+          uid: this.state.iFNUM,
+          name: fileName[key].FileName,
+          status: 'done',
+          response: 'Server Error 500',
+          url:url1+'/_layouts/15/WopiFrame.aspx?sourcedoc='+fileName[key].ServerRelativeUrl,
+        });  
+      }
+      else {
+        this.state.defaultFiletext.push({
+          uid: this.state.iFNUM,
+          name: fileName[key].FileName,
+          status: 'done',
+          response: 'Server Error 500',
+          url:fileName[key].ServerRelativeUrl,
+        });  
+      }
       this.state.iFNUM--;
     }
-
+    
   }
 
   /**

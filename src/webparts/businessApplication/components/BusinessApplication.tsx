@@ -692,6 +692,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   public createItem() {
     this.state.people_data = []
     this.setState({
+      itemType: '默认',
       visible: true
     });
     // this.getType();
@@ -1045,6 +1046,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     let name = await sp.web.currentUser.get();
     let username = name.Id;
       this.setState({
+        modalTitle: '查询',
         inputDisplay:'inline-block',
         data:null,
         selindex: 0,
@@ -1058,7 +1060,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
         <Or><Or>
         <Includes><FieldRef Name='ApprovalUsers' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes>
         <Includes><FieldRef Name='CCUser' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes></Or>
-        <Includes><FieldRef Name='ApprovalUser' LookupId='True'/><Value Type='User'>${username}</Value></Includes>
+        <Eq><FieldRef Name='ApprovalUser' LookupId='True'/><Value Type='User'>${username}</Value></Eq>
         </Or>
         </Where>
         <OrderBy>
@@ -1095,7 +1097,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           <Or><Or>
           <Includes><FieldRef Name='ApprovalUsers' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes>
           <Includes><FieldRef Name='CCUser' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes></Or>
-          <Includes><FieldRef Name='ApprovalUser' LookupId='True'/><Value Type='User'>${username}</Value></Includes>
+          <Eq><FieldRef Name='ApprovalUser' LookupId='True'/><Value Type='User'>${username}</Value></Eq>
           </Or>
           <Eq><FieldRef Name='createUser' LookupId='True'/><Value Type='User'>${this.state.nameList}</Value></Eq>
           </And>
@@ -1128,7 +1130,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           <Or><Or>
           <Includes><FieldRef Name='ApprovalUsers' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes>
           <Includes><FieldRef Name='CCUser' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes></Or>
-          <Includes><FieldRef Name='ApprovalUser' LookupId='True'/><Value Type='User'>${username}</Value></Includes>
+          <Eq><FieldRef Name='ApprovalUser' LookupId='True'/><Value Type='User'>${username}</Value></Eq>
           </Or>
           <Eq><FieldRef Name='createUser' LookupId='True'/><Value Type='User'>${this.state.nameList}</Value></Eq>
           </And>
@@ -1170,7 +1172,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           <Or><Or>
           <Includes><FieldRef Name='ApprovalUsers' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes>
           <Includes><FieldRef Name='CCUser' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes></Or>
-          <Includes><FieldRef Name='ApprovalUser' LookupId='True'/><Value Type='User'>${username}</Value></Includes>
+          <Eq><FieldRef Name='ApprovalUser' LookupId='True'/><Value Type='User'>${username}</Value></Eq>
           </Or>
           <Or>
           <Contains><FieldRef Name='Title' /><Value Type='Text'>${this.state.searchContent}</Value></Contains>
@@ -1206,7 +1208,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
           <Or><Or>
           <Includes><FieldRef Name='ApprovalUsers' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes>
           <Includes><FieldRef Name='CCUser' LookupId='True'/><Value Type='UserMulti'>${username}</Value></Includes></Or>
-          <Includes><FieldRef Name='ApprovalUser' LookupId='True'/><Value Type='User'>${username}</Value></Includes>
+          <Eq><FieldRef Name='ApprovalUser' LookupId='True'/><Value Type='User'>${username}</Value></Eq>
           </Or>
           </Where>
           <OrderBy>
@@ -1265,6 +1267,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                   ))}
                 </Select>
                 <Input.TextArea rows={1} 
+                autosize={{ minRows: 1, maxRows: 1 }}
                 value={this.state.searchContent} 
                 onChange={this.searchText} 
                 placeholder="请输入标题或内容"  
@@ -1492,7 +1495,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                 <Col span={24}>
                   <Form.Item label="标题"  validateStatus={this.state.validateStatus} help={this.state.help}>
                     {/* <input className={styles.antinput} value={this.state.itemTitle} onChange={this.handleChangeTitle} /> */}
-                    <Input.TextArea rows={1} value={this.state.itemTitle} onChange={this.handleChangeTitle} placeholder="请输入标题" className={styles.textalign} />
+                    <Input.TextArea rows={1} value={this.state.itemTitle} autosize={{ minRows: 1, maxRows: 1 }}  onChange={this.handleChangeTitle} placeholder="请输入标题" className={styles.textalign} />
                   </Form.Item>
                 </Col>
               </Row>
