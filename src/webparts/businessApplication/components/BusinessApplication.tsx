@@ -604,7 +604,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
   public pageCancel = () => {
     this.setState({
       visible1: false,
-      upfile:[],
+      upfile: [],
+      originator: null
     });
     this.state.waitList=[];
     //this.state.status="wait"
@@ -961,7 +962,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
       var strname: string = '123';
       for (let index = 0; index < Items.length; index++) {
         let username = await sp.web.getUserById(Items[index]['CreateUserStringId']).get();
-        strname = username.Title;
+        strname = username.Title;   
         if (Items[index]['Content'] != null) {
           var msgT: string = Items[index]['Content'];
           var msg = this.optimizingData(msgT);
@@ -1010,7 +1011,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
     }
   }
   /**
-   * 时间轴中待审批
+   * 步骤中待审批
    */
   public waitLine = async (waitText)=>{
     //console.log(waitText);
@@ -1356,8 +1357,8 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                 转发：
                 <Select
                           showSearch={true}
-                          labelInValue
-                          placeholder="请选择审阅人"
+                          //defaultValue={this.state.applicant}
+                          placeholder={this.state.applicant}
                           notFoundContent={this.state.people_fetching ? <Spin size="small" /> : null}
                           filterOption={false}
                           onSearch={this.fetchUser}
