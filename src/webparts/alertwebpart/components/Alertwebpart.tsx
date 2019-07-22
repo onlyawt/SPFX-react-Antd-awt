@@ -18,6 +18,7 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
     timeList: null, // 初始时间轴
     selindex: 0,
     Title: null,
+    originator:null,
     ccName: [], // 抄送人姓名
     readName: [], // 已审阅姓名
     defaultFiletext: [],
@@ -66,6 +67,14 @@ export default class Alertwebpart extends React.Component<IAlertwebpartProps, {}
   ];
 
   private showModal = async (row, index) => {
+    
+    let Originator = null;
+    let neme = await sp.web.getUserById(row.createUserId).get();
+    Originator = neme.Title;
+    this.setState(
+      { originator:Originator }
+    );
+
     // console.log(this.state.defaultFiletext);
     // console.log(this.props.ApprovealListName)
     this.approvlaContent(row);
@@ -463,7 +472,7 @@ public handleChange() {
               </Col>
               <Col xs={24} lg={10}>
               <Steps direction="vertical" style={{ marginTop: '10px' }} size='small' /* progressDot={customDot} */>
-                  <Steps.Step status="finish"  icon={<Icon type="user" />} title={'申请人：' + (this.state.applicant ? this.state.applicant : '没有数据！') + '[' + (data ? moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  HH:mm') : '没有数据！') + ']'} />
+                  <Steps.Step status="finish"  icon={<Icon type="user" />} title={'申请人：' + (this.state.originator ? this.state.originator : '没有数据！') + '[' + (data ? moment(data[this.state.selindex].createTime).format('YYYY-MM-DD  HH:mm') : '没有数据！') + ']'} />
                   {this.state.timeList}
                   {this.state.waitList}
                   {/* <Steps.Step style={{}} status={'wait'} icon={<Icon type="check-circle" />} title='未结束'/> */}
