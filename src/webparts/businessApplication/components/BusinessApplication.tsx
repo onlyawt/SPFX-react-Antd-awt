@@ -1321,7 +1321,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
                     <tr >
                       <td>附件上传</td>
                       <td>
-                        <Upload onChange={this.uploadOnChange} fileList={this.state.upfile}>
+                        <Upload accept=".TXT,.DOC,.XLS,.PPT,.DOCX,.XLSX,.PPTX,.JPG,.PNG,.PDF,.TIFF,.SWF,.FLV,.RMVB,.MP4,.MVB,.WMA,.MP3,.RAR,.EXE" onChange={this.uploadOnChange} fileList={this.state.upfile}>
                           <Button size="small">
                             <Icon type="upload" /> 上传附件
                           </Button>
@@ -1514,7 +1514,7 @@ export default class BusinessApplication extends React.Component<IBusinessApplic
               <Row gutter={8}>
                 <Col span={24}>
                   <Form.Item label='附件'>
-                    <Upload.Dragger onChange={this.uploadOnChange} multiple={true} fileList={this.state.upfile}>
+                    <Upload.Dragger accept=".TXT,.DOC,.XLS,.PPT,.DOCX,.XLSX,.PPTX,.JPG,.PNG,.PDF,.TIFF,.SWF,.FLV,.RMVB,.MP4,.MVB,.WMA,.MP3,.RAR,.EXE" onChange={this.uploadOnChange} multiple={true} fileList={this.state.upfile}>
                       {/*  <p className="ant-upload-drag-icon">
                      
                     </p> */}

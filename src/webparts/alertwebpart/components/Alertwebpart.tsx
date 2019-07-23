@@ -459,7 +459,7 @@ public handleChange() {
                     <tr style={{ lineHeight: '40px' }}>
                       <td>附件</td>
                       <td>
-                        <Upload showUploadList={{showRemoveIcon: false}} defaultFileList={this.state.defaultFiletext ? this.state.defaultFiletext : null}>
+                        <Upload  showUploadList={{showRemoveIcon: false}} defaultFileList={this.state.defaultFiletext ? this.state.defaultFiletext : null}>
                         </Upload>
                       </td>
                     </tr>
