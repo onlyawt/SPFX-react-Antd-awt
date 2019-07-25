@@ -7,36 +7,19 @@ import {
   PropertyPaneTextField
 } from '@microsoft/sp-webpart-base';
 
-import * as strings from 'HmsWebPartStrings';
-import Hms from './components/Hms';
-import { IHmsProps } from './components/IHmsProps';
-import { sp } from "@pnp/sp";
+import * as strings from 'AwtwebpartWebPartStrings';
+import Awtwebpart from './components/Awtwebpart';
+import { IAwtwebpartProps } from './components/IAwtwebpartProps';
 
-
-export interface IHmsWebPartProps {
+export interface IAwtwebpartWebPartProps {
   description: string;
 }
 
-export default class HmsWebPart extends BaseClientSideWebPart<IHmsWebPartProps> {
-
-
-  public onInit(): Promise<void> {
-
-    return super.onInit().then(_ => {
-    
-    sp.setup({
-    
-    spfxContext: this.context
-    
-    });
-    
-    });
-    
-    }
+export default class AwtwebpartWebPart extends BaseClientSideWebPart<IAwtwebpartWebPartProps> {
 
   public render(): void {
-    const element: React.ReactElement<IHmsProps > = React.createElement(
-      Hms,
+    const element: React.ReactElement<IAwtwebpartProps > = React.createElement(
+      Awtwebpart,
       {
         description: this.properties.description
       }

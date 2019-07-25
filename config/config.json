@@ -2,46 +2,19 @@
   "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
   "version": "2.0",
   "bundles": {
-    "business-application-web-part": {
+   
+    "awtwebpart-web-part": {
       "components": [
         {
-          "entrypoint": "./lib/webparts/businessApplication/BusinessApplicationWebPart.js",
-          "manifest": "./src/webparts/businessApplication/BusinessApplicationWebPart.manifest.json"
-        }
-      ]
-    },
-    "alertwebpart-web-part": {
-      "components": [
-        {
-          "entrypoint": "./lib/webparts/alertwebpart/AlertwebpartWebPart.js",
-          "manifest": "./src/webparts/alertwebpart/AlertwebpartWebPart.manifest.json"
-        }
-      ]
-    },
-    "hms-web-part": {
-      "components": [
-        {
-          "entrypoint": "./lib/webparts/hms/HmsWebPart.js",
-          "manifest": "./src/webparts/hms/HmsWebPart.manifest.json"
-        }
-      ]
-    },
-    "show-page-web-part": {
-      "components": [
-        {
-          "entrypoint": "./lib/webparts/showPage/ShowPageWebPart.js",
-          "manifest": "./src/webparts/showPage/ShowPageWebPart.manifest.json"
+          "entrypoint": "./lib/webparts/awtwebpart/AwtwebpartWebPart.js",
+          "manifest": "./src/webparts/awtwebpart/AwtwebpartWebPart.manifest.json"
         }
       ]
     }
- 
   },
   "externals": {},
   "localizedResources": {
-    "BusinessApplicationWebPartStrings": "lib/webparts/businessApplication/loc/{locale}.js",
-    "AlertwebpartWebPartStrings": "lib/webparts/alertwebpart/loc/{locale}.js",
-    "HmsWebPartStrings": "lib/webparts/hms/loc/{locale}.js",
-    "ControlStrings": "node_modules/@pnp/spfx-controls-react/lib/loc/{locale}.js",
-    "ShowPageWebPartStrings": "lib/webparts/showPage/loc/{locale}.js"
+   
+    "AwtwebpartWebPartStrings": "lib/webparts/awtwebpart/loc/{locale}.js"
   }
 }
