@@ -1,17 +1,12 @@
 import * as React from 'react';
-import 'es6-promise';
-import 'core-js/es6/array';
-import "es6-map/implement";
-import "core-js/modules/es6.array.find";
 import { Tabs, Button, Table, Menu, Drawer, message, Form, Radio, Col, Row, Input, Select, Steps, Upload, Divider, Icon, Modal, Popover, Spin } from 'antd';
-
+import 'antd/dist/antd.css';
 import Search from 'antd/lib/input/Search';
 import styles from './Awtwebpart.module.scss';
 import { IAwtwebpartProps } from './IAwtwebpartProps';
 import { escape,debounce } from '@microsoft/sp-lodash-subset';
 import { sp, Items, AttachmentFileInfo } from '@pnp/sp';
 import * as moment from 'moment';
-
 import { SPUser } from '@microsoft/sp-page-context';
 
 
@@ -20,12 +15,12 @@ export default class Awtwebpart extends React.Component < IAwtwebpartProps, {} >
 
 
   state = {
-    visible : '安文田',
+    visible : 'only',
   }
   
  //退回窗口正文
  public ChangeContent = () => {
-  this.setState({ visible:'yufan'});
+  this.setState({ visible:'React'});
 }
 
 constructor(props) {
